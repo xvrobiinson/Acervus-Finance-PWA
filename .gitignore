@@ -9,3 +9,4 @@ dev-dist/
 coverage/
 *.log
 .DS_Store
+tests/qa/reports/

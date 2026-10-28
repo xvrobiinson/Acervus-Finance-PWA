@@ -1,0 +1,11 @@
+# Creating an account asks for a name and an email, then a code. No password.
+# Run with QA_EMAIL set to a fresh address, e.g. QA_EMAIL=qa-$(date +%s)@example.com
+open /sign-up
+wait until the Create an account heading is visible
+expect a Your name field
+expect no Password field
+type QA Tester into Your name
+type $QA_EMAIL into Email
+click Send code
+wait until the Enter your code heading is visible
+expect a Send a new code button

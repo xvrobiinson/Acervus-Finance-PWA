@@ -1,7 +1,8 @@
 // End-to-end smoke test against a running *local* Convex deployment
-// (`CONVEX_AGENT_MODE=anonymous npx convex dev` with SITE_URL and
-// AUTH_LOG_EMAIL_LINKS=true set on it): sign-up, email verification, sign-in,
-// the Convex token, and a lending workflow through the real functions.
+// (`CONVEX_AGENT_MODE=anonymous npx convex dev` with SITE_URL set and no
+// RESEND_API_KEY, so sign-in codes go to the log): code request, wrong code,
+// sign-in with the code, the Convex token, and a lending workflow through the
+// real functions.
 //
 // Usage: node scripts/smoke-auth.mjs <convex-dev-log-file>
 // Never run it against a production deployment.
@@ -17,9 +18,7 @@ const log = process.argv[2];
 if (!SITE.includes("127.0.0.1")) throw new Error("local only");
 
 const email = `smoke-${Date.now()}@example.com`;
-const password = "correct-horse-battery-1";
 let cookie = "";
-
 async function auth(path, body, method = "POST") {
   const res = await fetch(`${SITE}/api/auth${path}`, {
     method,
@@ -44,30 +43,27 @@ const step = (name, ok, extra = "") => {
   if (!ok) process.exitCode = 1;
 };
 
-const up = await auth("/sign-up/email", { email, password, name: "Smoke Tester", callbackURL: `${ORIGIN}/sign-in?verified=1` });
-step("sign up", up.status === 200, `HTTP ${up.status}`);
-
-const blocked = await auth("/sign-in/email", { email, password });
-step("sign-in refused before the email is verified", blocked.status === 403, `HTTP ${blocked.status}`);
+const sent = await auth("/email-otp/send-verification-otp", { email, type: "sign-in" });
+step("code requested", sent.status === 200, `HTTP ${sent.status}`);
 
 await new Promise((r) => setTimeout(r, 1500));
-const lines = readFileSync(log, "utf8").split(/\r?\n/);
-// The log shows line breaks as a literal backslash-n; a link ends at a quote,
-// a space or a backslash.
-const link = [...lines]
+const code = readFileSync(log, "utf8")
+  .split(/\r?\n/)
   .reverse()
   .filter((l) => l.includes(email))
-  .map((l) => l.match(/https?:\/\/[^\s'"\\]+verify-email[^\s'"\\]*/)?.[0])
+  .map((l) => l.match(/CODE: (\d{6})/)?.[1])
   .find(Boolean);
-step("verification link written to the dev log", !!link);
-const verify = await fetch(link, { redirect: "manual", headers: { Origin: ORIGIN } });
-step("verification link works and returns to the app", verify.status === 302 && (verify.headers.get("location") ?? "").startsWith(ORIGIN), verify.headers.get("location") ?? "");
+step("code written to the Convex log", !!code);
 
-const wrong = await auth("/sign-in/email", { email, password: "wrong-password-123" });
-step("wrong password refused", wrong.status === 401, `HTTP ${wrong.status}`);
+const wrongCode = code === "000000" ? "111111" : "000000";
+const wrong = await auth("/sign-in/email-otp", { email, otp: wrongCode });
+step("wrong code refused", wrong.status === 400 && wrong.json?.code === "INVALID_OTP", `HTTP ${wrong.status} ${wrong.json?.code ?? ""}`);
 
-const signIn = await auth("/sign-in/email", { email, password });
-step("sign in after verification", signIn.status === 200 && !!cookie, `HTTP ${signIn.status}`);
+const signIn = await auth("/sign-in/email-otp", { email, otp: code, name: "Smoke Tester" });
+step("sign in with the code creates the account", signIn.status === 200 && !!cookie && signIn.json?.user?.name === "Smoke Tester", `HTTP ${signIn.status}`);
+
+const reused = await auth("/sign-in/email-otp", { email, otp: code });
+step("a used code is refused", reused.status === 400, `HTTP ${reused.status} ${reused.json?.code ?? ""}`);
 
 const tok = await auth("/convex/token", null, "GET");
 const token = tok.json?.token;

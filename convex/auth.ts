@@ -3,31 +3,35 @@
 // deployment's .convex.site URL, and the crossDomain plugin lets the app on
 // its own domain (Cloudflare) use them.
 //
-// Sign-up is open (each new user can create their own business), so email
-// addresses must be verified before the account can sign in. Google sign-in
-// is available when GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are set.
+// Passwordless: people sign in with a one-time code sent to their email, and
+// the first sign-in creates the account (each new user can create their own
+// business). Proving the code proves the address. Google sign-in is available
+// when GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are set.
 
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import authConfig from "./auth.config";
-import { actionEmail, sendEmail } from "./lib/email";
+import { codeEmail, sendEmail } from "./lib/email";
 
 const siteUrl = process.env.SITE_URL!;
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
-/** Per-account limits on top of Better Auth's per-IP limits, so password
- *  guessing against one address is slow even from many IPs. */
+const SEND_CODE_PATH = "/email-otp/send-verification-otp";
+const SIGN_IN_CODE_PATH = "/sign-in/email-otp";
+const CODE_LIFETIME_MINUTES = 10;
+
+/** Per-account limits on top of Better Auth's per-IP limits, so code
+ *  guessing or email flooding against one address is slow even from many IPs. */
 const ACCOUNT_LIMITS: Record<string, { max: number; windowMs: number }> = {
-  "/sign-in/email": { max: 10, windowMs: 15 * 60_000 },
-  "/sign-up/email": { max: 3, windowMs: 60 * 60_000 },
-  "/request-password-reset": { max: 3, windowMs: 60 * 60_000 },
-  "/send-verification-email": { max: 3, windowMs: 60 * 60_000 },
+  [SEND_CODE_PATH]: { max: 10, windowMs: 60 * 60_000 },
+  [SIGN_IN_CODE_PATH]: { max: 10, windowMs: 15 * 60_000 },
 };
 
 const IP_HEADERS = ["cf-connecting-ip", "x-forwarded-for", "x-real-ip"];
@@ -51,45 +55,6 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     baseURL: process.env.CONVEX_SITE_URL,
     trustedOrigins: [siteUrl],
     database: authComponent.adapter(ctx),
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: true,
-      minPasswordLength: 10,
-      maxPasswordLength: 128,
-      revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => {
-        await sendEmail(
-          actionEmail({
-            to: user.email,
-            subject: "Reset your password / Restablece tu contraseña",
-            en: "Someone asked to reset the password of your Acervus Finance account. If it was you, use the button below within one hour. If not, ignore this email.",
-            es: "Alguien pidió restablecer la contraseña de tu cuenta de Acervus Finance. Si fuiste tú, usa el botón dentro de una hora. Si no, ignora este correo.",
-            button: "Reset password / Restablecer",
-            url,
-          }),
-        );
-      },
-    },
-    emailVerification: {
-      sendOnSignUp: true,
-      sendOnSignIn: true,
-      // Verifying happens on the .convex.site domain, where a session cookie
-      // would be useless to the app; people sign in after verifying.
-      autoSignInAfterVerification: false,
-      expiresIn: 60 * 60 * 24,
-      sendVerificationEmail: async ({ user, url }) => {
-        await sendEmail(
-          actionEmail({
-            to: user.email,
-            subject: "Confirm your email / Confirma tu correo",
-            en: "Confirm your email address to finish creating your Acervus Finance account.",
-            es: "Confirma tu correo para terminar de crear tu cuenta de Acervus Finance.",
-            button: "Confirm email / Confirmar",
-            url,
-          }),
-        );
-      },
-    },
     socialProviders: googleProvider(),
     session: {
       expiresIn: 60 * 60 * 24 * 14,
@@ -101,10 +66,8 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       window: 60,
       max: 100,
       customRules: {
-        "/sign-in/email": perIp(60, 5),
-        "/sign-up/email": perIp(60 * 60, 5),
-        "/request-password-reset": perIp(60 * 60, 5),
-        "/send-verification-email": perIp(60 * 60, 5),
+        [SEND_CODE_PATH]: perIp(60 * 60, 20),
+        [SIGN_IN_CODE_PATH]: perIp(60, 5),
         // Everything else (sessions, tokens): generous, per IP only.
         "/**": perIp(60, 300),
       },
@@ -127,7 +90,20 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
         }
       }),
     },
-    plugins: [crossDomain({ siteUrl }), convex({ authConfig })],
+    plugins: [
+      emailOTP({
+        otpLength: 6,
+        expiresIn: CODE_LIFETIME_MINUTES * 60,
+        allowedAttempts: 3,
+        storeOTP: "hashed",
+        sendVerificationOTP: async ({ email, otp, type }) => {
+          if (type !== "sign-in") return;
+          await sendEmail(codeEmail({ to: email, code: otp, minutes: CODE_LIFETIME_MINUTES }));
+        },
+      }),
+      crossDomain({ siteUrl }),
+      convex({ authConfig }),
+    ],
   } satisfies BetterAuthOptions);
 };
 
@@ -137,6 +113,6 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx);
     if (!user) return null;
-    return { id: user._id as string, email: user.email, name: user.name, emailVerified: user.emailVerified };
+    return { id: user._id as string, email: user.email, name: user.name || user.email, emailVerified: user.emailVerified };
   },
 });

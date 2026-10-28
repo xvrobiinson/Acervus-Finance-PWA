@@ -1,0 +1,17 @@
+# Passwordless sign-in: email, then a 6-digit code.
+# Run with QA_EMAIL set to a fresh address, e.g. QA_EMAIL=qa-$(date +%s)@example.com
+# The real code is only in the Convex log, so signing in with it is covered by
+# scripts/smoke-auth.mjs. This flow checks the screens and a wrong code.
+open /sign-in
+wait until the Sign in heading is visible
+expect a Send code button
+expect no Password field
+type $QA_EMAIL into Email
+click Send code
+wait until the Enter your code heading is visible
+expect text that says a 6-digit code was sent to the email address
+type 000000 into Code
+click Continue
+expect the message "That code is wrong. Check it and try again."
+click Use a different email
+expect the Sign in heading

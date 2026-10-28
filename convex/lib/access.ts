@@ -39,7 +39,7 @@ export async function requireIdentity(ctx: QueryCtx | MutationCtx): Promise<Iden
   if (!id) fail("unauthenticated");
   if (id.emailVerified === false) fail("email_not_verified");
   const email = (id.email ?? "").toLowerCase();
-  return { userId: id.subject, email, name: id.name ?? email };
+  return { userId: id.subject, email, name: id.name || email };
 }
 
 export interface Access extends Identity {

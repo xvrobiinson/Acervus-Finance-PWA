@@ -1,9 +1,9 @@
-// Signing in and up (Better Auth), password reset, accepting an invitation
-// and creating a business.
+// Signing in and up with an emailed one-time code (Better Auth), accepting an
+// invitation and creating a business.
 
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { authClient } from "../lib/auth-client";
@@ -14,7 +14,15 @@ import { useApp } from "../state/app";
 import { Banner, Button, Field } from "../ui/kit";
 
 const INVITE_KEY = "acervus.inviteToken";
+const CODE_LENGTH = 6;
 const googleEnabled = import.meta.env.VITE_GOOGLE_SIGN_IN === "true";
+
+interface CodeRequest {
+  email: string;
+  name?: string;
+}
+
+type AuthFailure = { status?: number; code?: string; message?: string } | null | undefined;
 
 function AuthPanel({ title, sub, children }: { title: string; sub?: ReactNode; children: ReactNode }) {
   const { lang, setLang } = useLang();
@@ -38,19 +46,21 @@ function AuthPanel({ title, sub, children }: { title: string; sub?: ReactNode; c
 }
 
 /** Better Auth error → a sentence. */
-function authError(t: ReturnType<typeof useT>, e: { status?: number; code?: string; message?: string } | null | undefined): string | null {
+function authError(t: ReturnType<typeof useT>, e: AuthFailure): string | null {
   if (!e) return null;
-  if (e.code === "EMAIL_NOT_VERIFIED" || e.status === 403) {
-    return t("Confirm your email first: we sent you a link. Check your spam folder too.", "Primero confirma tu correo: te enviamos un enlace. Revisa también el correo no deseado.");
-  }
-  if (e.code === "INVALID_EMAIL_OR_PASSWORD" || e.status === 401) return t("Wrong email or password.", "Correo o contraseña incorrectos.");
-  if (e.code === "USER_ALREADY_EXISTS" || e.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") {
-    return t("There is already an account with this email. Sign in instead.", "Ya existe una cuenta con este correo. Inicia sesión.");
-  }
-  if (e.code === "PASSWORD_TOO_SHORT") return t("Use at least 10 characters.", "Usa al menos 10 caracteres.");
+  if (e.code === "INVALID_OTP") return t("That code is wrong. Check it and try again.", "Ese código no es correcto. Revísalo e inténtalo de nuevo.");
+  if (e.code === "OTP_EXPIRED") return t("That code expired. Send a new one.", "Ese código venció. Pide uno nuevo.");
+  if (e.code === "TOO_MANY_ATTEMPTS") return t("Too many wrong tries for this code. Send a new one.", "Demasiados intentos con este código. Pide uno nuevo.");
   if (e.status === 429) return t("Too many attempts. Wait a few minutes and try again.", "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
   if (!navigator.onLine) return t("No connection. Try again when you're online.", "Sin conexión. Inténtalo de nuevo cuando estés en línea.");
   return e.message || t("Something went wrong. Try again.", "Algo salió mal. Inténtalo de nuevo.");
+}
+
+const sendCode = (email: string) => authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" });
+
+function enterApp() {
+  const invite = sessionStorage.getItem(INVITE_KEY);
+  location.assign(invite ? `/invite#token=${invite}` : "/");
 }
 
 function GoogleButton() {
@@ -69,56 +79,15 @@ function GoogleButton() {
 export function SignIn() {
   const t = useT();
   const app = useApp();
-  const [params] = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [unverified, setUnverified] = useState(false);
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const { error: err } = await authClient.signIn.email({ email: email.trim(), password });
-    setBusy(false);
-    if (err) {
-      setUnverified(err.status === 403);
-      setError(authError(t, err));
-      return;
-    }
-    const invite = sessionStorage.getItem(INVITE_KEY);
-    location.assign(invite ? `/invite#token=${invite}` : "/");
-  };
+  const [request, setRequest] = useState<CodeRequest | null>(null);
+  if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
-    <AuthPanel title={t("Sign in", "Iniciar sesión")} sub="Acervus Finance">
-      {params.get("verified") && <Banner tone="info" icon="check">{t("Email confirmed. Sign in to continue.", "Correo confirmado. Inicia sesión para continuar.")}</Banner>}
-      {params.get("reset") && <Banner tone="info" icon="check">{t("Password changed. Sign in with the new one.", "Contraseña cambiada. Inicia sesión con la nueva.")}</Banner>}
-      <form className="stack" onSubmit={submit}>
-        <Field label={t("Email", "Correo")}>{(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
-        <Field label={t("Password", "Contraseña")}>
-          {(id) => <input id={id} className="input" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />}
-        </Field>
-        {error && <div className="banner error" role="alert">{error}</div>}
-        {unverified && (
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              await authClient.sendVerificationEmail({ email: email.trim(), callbackURL: `${location.origin}/sign-in?verified=1` });
-              setError(t("We sent a new confirmation link.", "Te enviamos un nuevo enlace de confirmación."));
-            }}
-          >
-            {t("Send the confirmation link again", "Enviar de nuevo el enlace")}
-          </Button>
-        )}
-        <Button type="submit" variant="primary" block loading={busy}>
-          {t("Sign in", "Iniciar sesión")}
-        </Button>
-      </form>
+    <AuthPanel title={t("Sign in", "Iniciar sesión")} sub={t("We'll email you a 6-digit code.", "Te enviaremos un código de 6 dígitos por correo.")}>
+      <EmailForm submitLabel={t("Send code", "Enviar código")} onSent={setRequest} />
       <GoogleButton />
-      <div className="row between small">
-        <Link to="/forgot-password">{t("Forgot your password?", "¿Olvidaste tu contraseña?")}</Link>
+      <p className="small" style={{ textAlign: "center" }}>
         <Link to="/sign-up">{t("Create an account", "Crear una cuenta")}</Link>
-      </div>
+      </p>
       {app.user === null && localStorage.getItem("acervus.lastUser") && !navigator.onLine && (
         <Button onClick={app.continueOffline}>{t("Continue offline", "Continuar sin conexión")}</Button>
       )}
@@ -129,55 +98,13 @@ export function SignIn() {
 export function SignUp() {
   const t = useT();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (password.length < 10) {
-      setError(t("Use at least 10 characters.", "Usa al menos 10 caracteres."));
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const { error: err } = await authClient.signUp.email({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-      callbackURL: `${location.origin}/sign-in?verified=1`,
-    });
-    setBusy(false);
-    if (err) setError(authError(t, err));
-    else setSent(true);
-  };
-  if (sent) {
-    return (
-      <AuthPanel title={t("Check your email", "Revisa tu correo")}>
-        <p>
-          {t(
-            `We sent a link to ${email}. Open it to confirm your address, then sign in.`,
-            `Enviamos un enlace a ${email}. Ábrelo para confirmar tu correo y luego inicia sesión.`,
-          )}
-        </p>
-        <Link to="/sign-in" className="btn primary block">{t("Go to sign in", "Ir a iniciar sesión")}</Link>
-      </AuthPanel>
-    );
-  }
+  const [request, setRequest] = useState<CodeRequest | null>(null);
+  if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
     <AuthPanel title={t("Create an account", "Crear una cuenta")} sub={t("Then create your business or accept an invitation.", "Luego crea tu negocio o acepta una invitación.")}>
-      <form className="stack" onSubmit={submit}>
+      <EmailForm name={name.trim()} submitLabel={t("Send code", "Enviar código")} onSent={setRequest}>
         <Field label={t("Your name", "Tu nombre")}>{(id) => <input id={id} className="input" autoComplete="name" required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />}</Field>
-        <Field label={t("Email", "Correo")}>{(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
-        <Field label={t("Password", "Contraseña")} hint={t("At least 10 characters.", "Al menos 10 caracteres.")}>
-          {(id) => <input id={id} className="input" type="password" autoComplete="new-password" required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} />}
-        </Field>
-        {error && <div className="banner error" role="alert">{error}</div>}
-        <Button type="submit" variant="primary" block loading={busy}>
-          {t("Create account", "Crear cuenta")}
-        </Button>
-      </form>
+      </EmailForm>
       <GoogleButton />
       <p className="small" style={{ textAlign: "center" }}>
         <Link to="/sign-in">{t("I already have an account", "Ya tengo una cuenta")}</Link>
@@ -186,71 +113,86 @@ export function SignUp() {
   );
 }
 
-export function ForgotPassword() {
+/** Asks for the email address and sends the sign-in code to it. */
+function EmailForm({ name, submitLabel, onSent, children }: { name?: string; submitLabel: string; onSent: (request: CodeRequest) => void; children?: ReactNode }) {
   const t = useT();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const address = email.trim();
+    const { error: err } = await sendCode(address);
+    setBusy(false);
+    if (err) setError(authError(t, err));
+    else onSent({ email: address, name });
+  };
   return (
-    <AuthPanel title={t("Reset your password", "Restablece tu contraseña")}>
-      {done ? (
-        <p>{t("If there is an account with that email, we sent it a link to reset the password.", "Si hay una cuenta con ese correo, le enviamos un enlace para restablecer la contraseña.")}</p>
-      ) : (
-        <form
-          className="stack"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            const { error: err } = await authClient.requestPasswordReset({ email: email.trim(), redirectTo: `${location.origin}/reset-password` });
-            setBusy(false);
-            if (err && err.status === 429) setError(authError(t, err));
-            else setDone(true);
-          }}
-        >
-          <Field label={t("Email", "Correo")}>{(id) => <input id={id} className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
-          {error && <div className="banner error">{error}</div>}
-          <Button type="submit" variant="primary" block loading={busy}>
-            {t("Send link", "Enviar enlace")}
-          </Button>
-        </form>
-      )}
-      <p className="small" style={{ textAlign: "center" }}>
-        <Link to="/sign-in">{t("Back to sign in", "Volver a iniciar sesión")}</Link>
-      </p>
-    </AuthPanel>
+    <form className="stack" onSubmit={submit}>
+      {children}
+      <Field label={t("Email", "Correo")}>{(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
+      {error && <div className="banner error" role="alert">{error}</div>}
+      <Button type="submit" variant="primary" block loading={busy}>
+        {submitLabel}
+      </Button>
+    </form>
   );
 }
 
-export function ResetPassword() {
+/** Checks the emailed code; the first sign-in with an address creates the account. */
+function CodeStep({ request, onBack }: { request: CodeRequest; onBack: () => void }) {
   const t = useT();
-  const [params] = useSearchParams();
-  const token = params.get("token");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(params.get("error") ? t("This link has expired. Ask for a new one.", "Este enlace venció. Pide uno nuevo.") : null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const { error: err } = await authClient.signIn.emailOtp({ email: request.email, otp: code.trim(), name: request.name });
+    setBusy(false);
+    if (err) setError(authError(t, err));
+    else enterApp();
+  };
+  const resend = async () => {
+    setError(null);
+    setNotice(null);
+    const { error: err } = await sendCode(request.email);
+    if (err) setError(authError(t, err));
+    else setNotice(t("We sent a new code.", "Te enviamos un código nuevo."));
+  };
   return (
-    <AuthPanel title={t("Choose a new password", "Elige una contraseña nueva")}>
-      <form
-        className="stack"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!token) return;
-          setBusy(true);
-          const { error: err } = await authClient.resetPassword({ newPassword: password, token });
-          setBusy(false);
-          if (err) setError(authError(t, err));
-          else location.assign("/sign-in?reset=1");
-        }}
-      >
-        <Field label={t("New password", "Contraseña nueva")} hint={t("At least 10 characters.", "Al menos 10 caracteres.")}>
-          {(id) => <input id={id} className="input" type="password" autoComplete="new-password" minLength={10} required value={password} onChange={(e) => setPassword(e.target.value)} />}
+    <AuthPanel title={t("Enter your code", "Escribe tu código")} sub={t(`We sent a ${CODE_LENGTH}-digit code to ${request.email}.`, `Enviamos un código de ${CODE_LENGTH} dígitos a ${request.email}.`)}>
+      <form className="stack" onSubmit={submit}>
+        <Field label={t("Code", "Código")} hint={t("It expires in 10 minutes. Check your spam folder too.", "Vence en 10 minutos. Revisa también el correo no deseado.")}>
+          {(id) => (
+            <input
+              id={id}
+              className="input"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern={`[0-9]{${CODE_LENGTH}}`}
+              maxLength={CODE_LENGTH}
+              required
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            />
+          )}
         </Field>
-        {error && <div className="banner error">{error}</div>}
-        <Button type="submit" variant="primary" block loading={busy} disabled={!token}>
-          {t("Save password", "Guardar contraseña")}
+        {notice && <Banner tone="info" icon="check">{notice}</Banner>}
+        {error && <div className="banner error" role="alert">{error}</div>}
+        <Button type="submit" variant="primary" block loading={busy}>
+          {t("Continue", "Continuar")}
         </Button>
       </form>
+      <div className="row between small">
+        <Button variant="ghost" size="small" onClick={onBack}>{t("Use a different email", "Usar otro correo")}</Button>
+        <Button variant="ghost" size="small" onClick={() => void resend()}>{t("Send a new code", "Enviar otro código")}</Button>
+      </div>
     </AuthPanel>
   );
 }

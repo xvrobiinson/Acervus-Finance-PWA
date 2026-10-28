@@ -5,7 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useT } from "./lib/i18n";
-import { ForgotPassword, InviteScreen, ResetPassword, SignIn, SignUp, Welcome } from "./screens/auth";
+import { InviteScreen, SignIn, SignUp, Welcome } from "./screens/auth";
 import { ClientDetail, ClientForm, ClientsScreen } from "./screens/clients";
 import { HistoryScreen } from "./screens/history";
 import { LoanDetail, LoanForm, LoansScreen } from "./screens/loans";
@@ -31,8 +31,6 @@ export function App() {
       <Routes>
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/invite" element={<InviteScreen />} />
         <Route path="*" element={<Navigate to={`/sign-in${location.search}`} replace />} />
       </Routes>

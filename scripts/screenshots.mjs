@@ -1,8 +1,8 @@
 // Seeds a demo business with SYNTHETIC data on a *local* Convex deployment and
 // captures phone-size screenshots of the app with a headless Edge (its own
 // throw-away profile; nothing is shown on screen and no input reaches other
-// programs). Requires the local backend (`npx convex dev`, anonymous) with
-// AUTH_LOG_EMAIL_LINKS=true and the Vite dev server on :5173.
+// programs). Requires the local backend (`npx convex dev`, anonymous) with no
+// RESEND_API_KEY, so sign-in codes go to the log, and the Vite dev server on :5173.
 //
 // Usage: node scripts/screenshots.mjs <convex-dev-log> <out-dir> [edge.exe]
 
@@ -19,7 +19,6 @@ mkdirSync(outDir, { recursive: true });
 
 // ----- account and session -------------------------------------------------
 const email = `demo-${Date.now()}@example.com`;
-const password = "demo-password-1234";
 let stored = {};
 async function auth(path, body, method = "POST") {
   const cookie = Object.entries(stored).map(([k, v]) => `${k}=${v.value}`).join("; ");
@@ -40,16 +39,15 @@ async function auth(path, body, method = "POST") {
   }
   return res.json().catch(() => null);
 }
-await auth("/sign-up/email", { email, password, name: "Rosa Demo" });
+await auth("/email-otp/send-verification-otp", { email, type: "sign-in" });
 await new Promise((r) => setTimeout(r, 1200));
-const link = readFileSync(log, "utf8")
+const code = readFileSync(log, "utf8")
   .split(/\r?\n/)
   .reverse()
   .filter((l) => l.includes(email))
-  .map((l) => l.match(/https?:\/\/[^\s'"\\]+verify-email[^\s'"\\]*/)?.[0])
+  .map((l) => l.match(/CODE: (\d{6})/)?.[1])
   .find(Boolean);
-await fetch(link, { redirect: "manual" });
-await auth("/sign-in/email", { email, password });
+await auth("/sign-in/email-otp", { email, otp: code, name: "Rosa Demo" });
 const { token } = await auth("/convex/token", null, "GET");
 const session = await auth("/get-session", null, "GET");
 

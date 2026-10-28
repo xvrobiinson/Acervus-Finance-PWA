@@ -49,9 +49,9 @@ Reversed payments from very old desktop versions have no counterpart. A migratio
 ## Authentication and authorization
 
 - Better Auth through `@convex-dev/better-auth` 0.12.6 / `better-auth` 1.6.33, set up as in the official React SPA guide (`crossDomain` and `convex` plugins).
-- Email and password: at least 10 characters, verification required before first sign-in, reset revokes other sessions. Sessions last 14 days; the Convex JWT lives 15 minutes.
+- Passwordless email codes (`emailOTP` plugin): 6 digits, valid 10 minutes, 3 tries per code, stored hashed, single use. The first sign-in with an address creates the account; entering the code proves the address. Without Resend the code goes to the Convex log (`convex/lib/email.ts`). Sessions last 14 days; the Convex JWT lives 15 minutes.
 - **Rate limits:**
-  - Per account (email), always: sign-in 10 / 15 min, sign-up 3 / h, reset and verification 3 / h (`convex/auth.ts`).
+  - Per account (email), always: code checks 10 / 15 min, code requests 10 / h (`convex/auth.ts`).
   - Per IP: only when the request carries a client IP header.
 
   *Verified on the local backend:* Convex HTTP actions did not pass a client IP. Better Auth's default would then put every user in one shared bucket per path, which would let one person lock everyone out. The per-IP rules therefore return `false` (skip) when no IP is present.
