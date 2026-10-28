@@ -10,11 +10,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p convex --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy:frontend": "wrangler deploy --env=\"\"",
+    "deploy:frontend": "wrangler deploy",
     "deploy:backend": "convex deploy --cmd \"npm run build\" --cmd-url-env-var-name VITE_CONVEX_URL",
     "smoke:local": "node scripts/smoke-auth.mjs",
-    "screenshots:local": "node scripts/screenshots.mjs",
-    "deploy:frontend:staging": "wrangler deploy --env staging"
+    "screenshots:local": "node scripts/screenshots.mjs"
   },
   "license": "UNLICENSED",
   "type": "module",

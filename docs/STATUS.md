@@ -3,7 +3,7 @@
 ## Decisions confirmed by the owner
 - Several separate businesses with self-service sign-up; whoever creates a business is its admin.
 - Roles: Admin, Collector and Viewer (`convex/lib/access.ts`).
-- Email and password with verification (Resend), plus optional Google.
+- Passwordless email codes (Resend; until it is connected the code is written to the Convex logs), plus optional Google. Changed from email and password on 2026-10-28.
 - Offline: create clients, payments, expenses and income. Everything else needs a connection.
 - ID photos: Convex storage, admins only, never cached, exported or printed.
 - The desktop app stays separate and untouched; migration will be decided later (`DESKTOP-SYNC-PLAN.md`).
@@ -13,7 +13,7 @@
 - **Engine** (`shared/domain`): port of the desktop engine and services logic.
 - **Backend** (`convex/`):
   - multi-tenant schema;
-  - Better Auth (verification, reset, Google, per-account and safe per-IP rate limits);
+  - Better Auth (email codes, Google, per-account and safe per-IP rate limits);
   - authorization on every function;
   - clients, loans (with edited schedules), payments (4 allocation modes), late fees and waivers, defaults;
   - capital, expenses, income, transfers, adjustments;
@@ -21,7 +21,7 @@
   - audit log, idempotent operations, stale and conflict detection, hourly late-fee job;
   - admin-only photo endpoint.
 - **App** (`src/`):
-  - sign-in, sign-up, verification, password reset, invitations, create business;
+  - sign-in and sign-up with an email code, invitations, create business;
   - Overview (KPIs, growth chart, needs attention, recent payments);
   - Clients (search, profile, ID photo);
   - Loans (filters, detail with installments or interest periods, payments, waivers, default, delete);
@@ -37,7 +37,8 @@
   - last copy per user and business in IndexedDB;
   - IndexedDB outbox, ordered and idempotent, with review/confirm/discard and a discard journal;
   - offline and pending banners.
-- **Hosting:** `wrangler.jsonc` (Workers static assets, SPA fallback), security headers with CSP, PWA manifest and icons.
+- **Hosting:** `wrangler.jsonc` (Workers static assets, SPA fallback, no preview URLs), security headers with CSP, PWA manifest and icons.
+- **CI/CD:** `.github/workflows/deploy.yml`: every push to `main` runs typecheck and tests, deploys Convex (building the app against it), then publishes to Cloudflare. No preview deployments.
 
 ## Test results (all run locally)
 | Suite | Result |
@@ -48,7 +49,8 @@
 | Offline outbox (fake IndexedDB): lost replies, refusals, session expiry, ordering, rebase, discard journal | 9 / 9 pass |
 | `npm run typecheck` (app + Convex), `npm run build` | pass (176 KB gzipped JS) |
 | `wrangler deploy --dry-run` | config valid |
-| Real stack, local backend (`scripts/smoke-auth.mjs`): sign-up → unverified sign-in refused → email link → sign-in → Convex token → anonymous calls refused → business/loan/payment → retried operation recorded once → sign-out → token refused | 13 / 13 pass |
+| Real stack, local backend (`scripts/smoke-auth.mjs`): code requested → code in the Convex log → wrong code refused → sign-in with the code creates the account → used code refused → Convex token → anonymous calls refused → business/loan/payment → retried operation recorded once → sign-out → token refused | 12 / 12 pass (2026-10-28) |
+| Browser (jev-qa, `tests/qa/email-code-*.qa`): email screen, code screen, wrong code message, sign-up with name, no password fields | 2 / 2 flows pass (2026-10-28) |
 | Real app in headless Edge, phone viewport (`scripts/screenshots.mjs`): screens render; **offline payment saved on the device, shown pending, synced after reconnecting, recorded once and marked offline on the server** | pass |
 
 Problems found and fixed while testing:
@@ -67,5 +69,5 @@ Problems found and fixed while testing:
 - The receipt page-count note uses the desktop's row measurements (US Letter in Edge). Other browsers may break pages slightly differently.
 
 ## Waiting on you
-1. Follow `DEPLOYMENT.md`: `npx convex login`, production secrets, Resend domain, `npx wrangler login`, deploy.
-2. Optional: Google OAuth client; custom domain.
+1. Follow `DEPLOYMENT.md` parts 1 to 6: Convex project, Cloudflare token, production variables, GitHub secrets, first deploy.
+2. Later: Resend domain (until then sign-in codes are in the Convex logs), Google OAuth client, custom domain.
