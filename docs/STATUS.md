@@ -7,7 +7,7 @@
 - Offline: create clients, payments, expenses and income. Everything else needs a connection.
 - ID photos: Convex storage, admins only, never cached, exported or printed.
 - The desktop app stays separate and untouched; migration will be decided later (`DESKTOP-SYNC-PLAN.md`).
-- The owner has Convex and Cloudflare accounts. **No GitHub repository has been created, nothing is committed, and nothing is deployed.**
+- The owner has Convex and Cloudflare accounts. Code is in the private GitHub repo `xvrobiinson/Acervus-Finance-PWA` (approved 2026-10-28). **Nothing is deployed yet.**
 
 ## Implemented
 - **Engine** (`shared/domain`): port of the desktop engine and services logic.
@@ -67,6 +67,5 @@ Problems found and fixed while testing:
 - The receipt page-count note uses the desktop's row measurements (US Letter in Edge). Other browsers may break pages slightly differently.
 
 ## Waiting on you
-1. Approve the first git commit and creating the private GitHub repo `Acervus-Finance-PWA`.
-2. Follow `DEPLOYMENT.md`: `npx convex login`, production secrets, Resend domain, `npx wrangler login`, deploy.
-3. Optional: Google OAuth client; custom domain.
+1. Follow `DEPLOYMENT.md`: `npx convex login`, production secrets, Resend domain, `npx wrangler login`, deploy.
+2. Optional: Google OAuth client; custom domain.
