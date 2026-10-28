@@ -1,0 +1,20 @@
+{
+  /* Convex's recommended settings for the functions in this folder. */
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": true,
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ESNext",
+    "lib": ["ES2022", "dom"],
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["./**/*", "../shared/**/*"],
+  "exclude": ["./_generated", "./**/*.test.ts", "../shared/**/*.test.ts"]
+}

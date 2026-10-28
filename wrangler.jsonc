@@ -1,0 +1,19 @@
+// Cloudflare Workers static assets: serves the built PWA (dist/) over HTTPS.
+// No Worker code runs — Convex is the backend — so this is assets-only, with
+// unknown paths answered by index.html for the single-page app.
+// Security headers come from public/_headers.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "acervus-finance-pwa",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  // Separate Worker for previews/staging: `npx wrangler deploy --env staging`.
+  "env": {
+    "staging": {
+      "name": "acervus-finance-pwa-staging"
+    }
+  }
+}
