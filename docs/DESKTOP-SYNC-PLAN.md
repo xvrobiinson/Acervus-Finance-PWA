@@ -112,6 +112,23 @@ demo exported, imported into a local backend, received by the worker and
 applied gives the same 26 figures and per-loan figures as the desktop that
 exported it (`tests/sync_local.rs`). The logo download goes with 3d.
 
+3c (2026-10-29): `sync::change::Change` lists every save; `Store::save`
+runs it with the local code and, when linked, queues the matching mutation
+(`outbox`, record ids and `expectedVersion` from `remote_ids`). The worker
+sends one at a time and answers accepted / refused / no answer / not sent.
+A lost answer is sent again only for the `opId` kinds (clients.create,
+payments.record, money.addEntry); any other change is put aside for review
+so it can't be made twice. Refused changes are kept with the cloud's reason.
+Each new copy shows the waiting offline kinds on top; after any outcome the
+app applies the last copy again. Tested on a local backend: every kind of
+change except `setLateFeeWaived` and photos is accepted, and after each the
+cloud's figures equal the desktop's own; a stale edit is refused
+(`conflict`); an `opId` change sent twice is recorded once.
+Notes for phase 4: a new record takes the cloud's record number when it is
+accepted (the cloud numbers all records of a business with one counter), so
+receipts wait for the accepted copy and find the record by its cloud id; a
+linked desktop shouldn't assess late fees itself (the cloud does, hourly).
+
 Original outline:
 - `src/sync/`: the Convex client on a background thread; sign-in by email
   code; the session kept in Windows Credential Manager, never in a file.
