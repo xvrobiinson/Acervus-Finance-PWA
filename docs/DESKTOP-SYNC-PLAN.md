@@ -129,6 +129,21 @@ Sign in / link business in Settings, sync status in the sidebar (synced /
 offline with N waiting / needs review), and a review list for refused
 offline changes.
 
+Also in phase 4 (owner's request, 2026-10-29):
+- **"Continue with Google"** next to the email code, in the PWA and the
+  desktop. Better Auth's Google provider; one account per email, so the
+  same person can use either. The desktop opens the browser and receives
+  the result on a local loopback address. Needs a free OAuth client in a
+  Google Cloud project (the owner creates it, guided). Check first that
+  Google accepts our free addresses (`vz-labs.workers.dev`,
+  `proper-pony-55.convex.site`) for a published app.
+- **Backups to Google Drive:** the desktop's backup of a linked business
+  (its copy is the whole book from the cloud) is also uploaded to the
+  person's own Google Drive, daily and on demand, into an "Acervus Finance
+  backups" folder, keeping the latest 30. Drive permission (`drive.file`:
+  the app sees only the files it made) is asked only when backups are turned
+  on. Not a sync channel: Convex stays the one copy that devices sync with.
+
 **5. Real data** (each step approved)
 Back up in the desktop, import into production with the figure check, link
 the desktop, use both.
@@ -146,3 +161,5 @@ sync turned off.
 - ID photos: saved on admins' PCs too (encrypted, see phase 3).
 - Users: the owner and their team (any role). The server enforces role
   rules; the desktop hides what a role can't do.
+- Google sign-in and backups to Google Drive: yes, in phase 4, after the
+  sync works.
