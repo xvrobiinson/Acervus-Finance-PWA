@@ -6,7 +6,7 @@
 - Passwordless email codes (Resend; until it is connected the code is written to the Convex logs), plus optional Google. Changed from email and password on 2026-10-28.
 - Offline: create clients, payments, expenses and income. Everything else needs a connection.
 - ID photos: Convex storage, admins only, never cached, exported or printed.
-- The desktop app stays separate and untouched; migration will be decided later (`DESKTOP-SYNC-PLAN.md`).
+- Desktop: two-way live sync with the PWA, chosen 2026-10-28 (`DESKTOP-SYNC-PLAN.md`). Not started; each phase needs approval.
 - The owner has Convex and Cloudflare accounts. Code is in the private GitHub repo `xvrobiinson/Acervus-Finance-PWA` (approved 2026-10-28). **Nothing is deployed yet.**
 
 ## Implemented

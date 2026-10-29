@@ -1,36 +1,94 @@
-# Connecting the desktop app: plan (not done)
+# Connecting the desktop app: two-way live sync (decided 2026-10-28)
 
-You chose to keep the desktop app separate for now. Nothing in `xvrobiinson/VZ-Finance` was changed, and no data was migrated. This plan is here so the decision can be made later with the facts.
+The owner chose **two-way live sync** over a one-time import: the desktop app
+and the PWA both stay in use, and a change on either one shows up on the
+other. Nothing is built yet. Each phase below needs the owner's approval
+before it starts, and no real data is touched before phase 5.
 
-## Option A: one-time import, then the PWA is the only app (recommended when you're ready)
+## The model: Convex is the single source of truth
 
-1. In the desktop app: Settings › Back up to… (a verified SQLite copy).
-2. A new importer (a local script in this repo; no change to the desktop app) reads that `.db` **read-only**. It creates the business in Convex (or uses an existing one) and maps:
-   - clients, with their photos into storage;
-   - loans and schedules;
-   - payments, with their recorded splits and allocation modes;
-   - late fees and waivers;
-   - capital entries and cash entries;
-   - settings, wording and logo;
-   - the change log, marked "imported".
+There is one copy of the books, the one in Convex. The desktop stops being its
+own database and becomes a second screen onto Convex, like the PWA:
 
-   Record numbers keep the desktop's ids, so receipt numbers stay the same.
-3. **Verification before going live:** the importer recomputes every loan and the portfolio in the PWA engine and compares them with the desktop's figures as of the same date. That covers payoff per loan, both cash accounts, portfolio value and overdue totals. Any difference stops the import.
-4. Run first into the **development** deployment, then production, with your approval at each step.
-5. **Rollback:** the desktop app and its database are untouched. If anything is wrong, keep using the desktop and delete the imported business in Convex.
+- **Reading:** the desktop subscribes to `data.snapshot` over a WebSocket (the
+  official Rust client, `convex` crate). When anything changes on any
+  device, Convex pushes the new snapshot and the desktop's local SQLite copy
+  is replaced in one transaction. Screens keep reading SQLite, so they work
+  as they do today and keep working offline.
+- **Writing:** every save calls the same Convex mutations the PWA uses. The
+  server runs the engine and rejects anything that breaks the rules, so the
+  two apps can't drift apart.
+- **Offline:** the same rules as the PWA. New clients, payments, expenses and
+  income go into a SQLite outbox (`opId`, ordered, idempotent) and are sent on
+  reconnect. New loans, edits and deletions need a connection. Edits carry the
+  `version` they started from; a stale edit is refused and the desktop shows
+  what changed instead of overwriting it.
 
-## Option B: the desktop app syncs with Convex (two apps in use)
+Nothing has to merge two databases, which keeps the sync simple
+and safe. The cost: the desktop needs the internet for edits and new loans.
 
-The desktop would need to:
+## Phases
 
-- add HTTPS/WebSocket networking and Better Auth sign-in (a browser-based OAuth/device flow) to a Rust app that today has no network code by design ("no account, no network requests");
-- either call the Convex functions (so the server validates everything) or keep its SQLite copy as a cache with an outbox, like the PWA's;
-- adopt `opId` idempotency, version checks and conflict review screens;
-- move "today" and late fees to the business time zone;
-- handle photos and the logo in Convex storage.
+**0. Cloud backend for testing** (done 2026-10-29)
+The development deployment `confident-squid-285` (demo data only);
+production is `proper-pony-55`.
 
-**Compatibility:** schema versions must stay in step across both apps; old desktop versions would have to be blocked from syncing.
-**Risks:** two codebases implementing sync, and a much larger attack surface on the desktop. Option A is simpler and safer.
-**Rollback:** keep a desktop build without sync, plus a backup taken before the switch.
+**1. Server additions (this repo)** (done 2026-10-29)
+- Sign-in: the same emailed 6-digit code as the PWA
+  (`/email-otp/send-verification-otp`, `/sign-in/email-otp`), then
+  `/convex/token` for the Convex token. No new auth tables: the device
+  authorization plugin would have needed a local install of the Better Auth
+  component and a move of the live sign-in data.
+- `desktop.compat({ clientVersion })`: the desktop asks before signing in
+  and before each sync whether its build may sync (`MIN_DESKTOP_VERSION`,
+  first sync build 0.7.0). Raise it whenever a schema or argument change
+  would let an older build write with old rules.
+- Everything else already exists: `data.snapshot`, the mutations (with
+  `opId` and `version`) and the admin-only `/client-photo` endpoint.
+- Still to test, in phase 3 with the real desktop client: a desktop and a
+  phone writing to the same loan.
 
-Either option needs your explicit approval before any real data is touched.
+**2. Importer (this repo; reads a desktop backup `.db` read-only)**
+Creates the business and maps clients (photos into storage), loans and
+schedules, payments with their recorded splits and allocation modes, late
+fees and waivers, capital and cash entries, settings, wording and logo, and
+the change log (marked "imported"). Record numbers keep the desktop's ids, so
+receipt numbers stay the same. It then recomputes every loan and the
+portfolio and compares them with the desktop's figures as of the same date
+(payoff per loan, both cash accounts, portfolio value, overdue totals). Any
+difference stops it. Tested on a `seed_demo` database first.
+
+**3. Desktop sync layer (desktop repo)**
+- `src/sync/`: the Convex client on a background thread; sign-in by email
+  code; the session kept in Windows Credential Manager, never in a file.
+- ID photos (owner's choice): admins' desktops keep a copy for offline use,
+  encrypted with Windows DPAPI (current user) and deleted on sign-out or when
+  the user stops being an admin. Other roles never download them.
+- Migration `0007`: Convex ids and `version` on each record, an `outbox`
+  table, a `sync_state` row (business, last snapshot time).
+- The services' write functions go through Convex when signed in. With sync
+  off they stay as they are today, so the app still works with no account.
+- "Today" and late fees use the business time zone.
+
+**4. Desktop screens** (kit-first: tried on Overview, then the owner is asked)
+Sign in / link business in Settings, sync status in the sidebar (synced /
+offline with N waiting / needs review), and a review list for refused
+offline changes.
+
+**5. Real data** (each step approved)
+Back up in the desktop, import into production with the figure check, link
+the desktop, use both.
+
+**Compatibility:** both apps must stay on the same schema; the
+`clientVersion` check blocks old desktop builds.
+**Risks:** sync code in two codebases, and the desktop gains network access
+(today it makes no network requests by design).
+**Rollback:** the backup taken before the switch, plus a desktop build with
+sync turned off.
+
+## Decided by the owner (2026-10-29)
+
+- Sign-in: email code, like the PWA.
+- ID photos: saved on admins' PCs too (encrypted, see phase 3).
+- Users: the owner and their team (any role). The server enforces role
+  rules; the desktop hides what a role can't do.
