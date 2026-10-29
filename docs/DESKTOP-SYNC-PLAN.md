@@ -77,7 +77,32 @@ portfolio and compares them with the desktop's figures as of the same date
 (payoff per loan, both cash accounts, portfolio value, overdue totals). Any
 difference stops it. Tested on a `seed_demo` database first.
 
-**3. Desktop sync layer (desktop repo)**
+**3. Desktop sync layer (desktop repo)** (in progress)
+
+Design (2026-10-29), local-first so the screens and forms keep working as
+they are:
+- Linked, the SQLite file is a replica: the latest `data.snapshot` with each
+  record's `recordNo` as its row id (record numbers are unique per table, so
+  every screen, receipt and id keeps working), plus a `remote_ids` table
+  (row id ↔ Convex id and `version`).
+- A save still runs the existing local code at once and also queues an
+  intent (`outbox`: kind, arguments with Convex ids, `opId`, the `version` it
+  started from). A background worker sends the queue in order through the
+  same mutations the PWA uses.
+- Each new snapshot replaces the replica in one transaction and replays the
+  intents still waiting, so the screen shows the server's books plus what is
+  pending. A refused intent is kept for review and dropped from the replay.
+- Offline, only the PWA's offline kinds are accepted (new clients, payments,
+  expenses, income); other saves say they need a connection.
+- Receipts for a new payment or loan print once the server has accepted it,
+  with the server's record number.
+
+Stages: 3a foundation (Convex client on a background thread, email-code
+sign-in, session in Credential Manager, version check, snapshot feed);
+3b replica (migration 0007, applying snapshots); 3c outbox and the write
+path; 3d ID photos (DPAPI); then phase 4, the screens.
+
+Original outline:
 - `src/sync/`: the Convex client on a background thread; sign-in by email
   code; the session kept in Windows Credential Manager, never in a file.
 - ID photos (owner's choice): admins' desktops keep a copy for offline use,
