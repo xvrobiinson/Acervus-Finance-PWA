@@ -159,6 +159,24 @@ Sign in / link business in Settings, sync status in the sidebar (synced /
 offline with N waiting / needs review), and a review list for refused
 offline changes.
 
+Progress (2026-10-29, desktop repo, version 0.7.0, not released):
+- `app::cloud`: sign-in, the worker's events, switching to a business's
+  own file and back, sending the outbox one change at a time, photo and
+  logo downloads, receipts opened once the cloud has the record. Every
+  form saves through `VzApp::save(Change)`; restore and reset are refused
+  while linked; a linked desktop doesn't assess late fees itself.
+- Settings: a "Cloud sync" card (email code sign-in, business list,
+  status, review list with Send again / Discard). Overview header: the new
+  kit `Chip` showing the status; the owner is asked before it goes to the
+  sidebar.
+- Found and fixed while trying it: `/convex/token` answers with only the
+  `convex_jwt` cookie, and 3a stored that as the whole session, which
+  signed the desktop out on the next token. Renewals are now merged.
+- Google check: `workers.dev` and `convex.site` are on the Public Suffix
+  List, so `vz-labs.workers.dev` and `proper-pony-55.convex.site` count as
+  domains of their own. Google's return address is
+  `https://proper-pony-55.convex.site/api/auth/callback/google`.
+
 Also in phase 4 (owner's request, 2026-10-29):
 - **"Continue with Google"** next to the email code, in the PWA and the
   desktop. Better Auth's Google provider; one account per email, so the
