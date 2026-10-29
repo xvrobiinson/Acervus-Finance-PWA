@@ -48,7 +48,26 @@ production is `proper-pony-55`.
 - Still to test, in phase 3 with the real desktop client: a desktop and a
   phone writing to the same loan.
 
-**2. Importer (this repo; reads a desktop backup `.db` read-only)**
+**2. Importer** (done 2026-10-29)
+1. Desktop repo, on the day of the import:
+   `cargo run --example export_for_cloud -- <backup.db> <export-dir>` copies
+   the database read-only, brings the copy up to date and writes the
+   desktop engine's figures (`figures.json`).
+2. This repo: `node scripts/import-desktop.mjs <export-dir> --url
+   https://<deployment>.convex.cloud` signs in with the email code and calls
+   `imports.desktopBook`, then uploads ID photos and the logo.
+
+`imports.desktopBook` is one transaction: it reworks every loan with the
+shared engine and compares all 26 portfolio figures and each loan's figures
+with the desktop's; any difference (or an export from another day) keeps
+nothing. Reversed payments (an early desktop feature) are left out. Tested
+with `convex/imports.test.ts` (a demo book with every payment mode, a waived
+fee, a default and an archived client) and end to end on a local backend
+(photo and logo included). Mutation limits (16,000 documents written per
+call) cap the size of a book imported in one go; a larger book would need
+to be sent in parts.
+
+Original outline:
 Creates the business and maps clients (photos into storage), loans and
 schedules, payments with their recorded splits and allocation modes, late
 fees and waivers, capital and cash entries, settings, wording and logo, and

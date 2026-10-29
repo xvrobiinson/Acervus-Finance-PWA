@@ -3,10 +3,10 @@
 // admin invites them.
 
 import { v } from "convex/values";
-import { isValidTimeZone } from "../shared/domain/dates";
-import type { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
-import { requireIdentity, requireMember } from "./lib/access";
+import { isValidTimeZone, todayIn } from "../shared/domain/dates";
+import type { Doc, Id } from "./_generated/dataModel";
+import { mutation, query, type MutationCtx } from "./_generated/server";
+import { requireIdentity, requireMember, type Access, type Identity } from "./lib/access";
 import { Diff, logChange } from "./lib/books";
 import { fail } from "./lib/errors";
 import { text } from "./lib/validate";
@@ -34,70 +34,88 @@ export const mine = query({
   },
 });
 
+export const businessArgs = {
+  name: v.string(),
+  timezone: v.string(),
+  language: v.union(v.literal("en"), v.literal("es")),
+  currencyCode: v.string(),
+};
+
 export const create = mutation({
-  args: {
-    name: v.string(),
-    timezone: v.string(),
-    language: v.union(v.literal("en"), v.literal("es")),
-    currencyCode: v.string(),
-  },
+  args: businessArgs,
   handler: async (ctx, a): Promise<Id<"businesses">> => {
     const who = await requireIdentity(ctx);
-    if (!(await hitLimit(ctx, `business:create:${who.userId}`, 3, 24 * 60 * 60_000))) fail("rate_limited");
-    const name = text("name", a.name, 80, { required: true, oneLine: true });
-    if (!isValidTimeZone(a.timezone)) fail("invalid", { field: "timezone", reason: "timezone" });
-    if (!CURRENCIES.includes(a.currencyCode)) fail("invalid", { field: "currency", reason: "currency" });
-    const now = Date.now();
-    const businessId = await ctx.db.insert("businesses", {
-      name,
-      timezone: a.timezone,
-      createdBy: who.userId,
-      createdAt: now,
-      nextRecordNo: 1,
-    });
-    const memberId = await ctx.db.insert("members", {
-      businessId,
-      userId: who.userId,
-      email: who.email,
-      name: who.name,
-      role: "admin",
-      active: true,
-      joinedAt: now,
-    });
-    await ctx.db.insert("settings", {
-      businessId,
-      receiptName: name,
-      companyAddress: "",
-      companyPhone: "",
-      receiptCompany: { name: true, address: true, phone: true },
-      receiptClient: { name: true, idNumber: true, phone: true, address: true },
-      receiptText: {},
-      currencyCode: a.currencyCode,
-      numberStyle: "comma_dot",
-      dateStyle: "medium",
-      language: a.language,
-      defaultRate: 100_000,
-      defaultFrequency: "monthly",
-      lateFeeRate: 50_000,
-      receiptAfterPayment: true,
-      receiptAfterLoan: true,
-      updatedAt: now,
-      version: 1,
-    });
-    const business = (await ctx.db.get(businessId))!;
-    const member = (await ctx.db.get(memberId))!;
-    await logChange(
-      ctx,
-      { ...who, business, member, today: "" },
-      "member",
-      memberId,
-      "create",
-      new Diff().added("role", "admin").added("email", who.email),
-      "Created the business",
-    );
-    return businessId;
+    return (await startBusiness(ctx, who, a)).business._id;
   },
 });
+
+type SettingsFields = Omit<Doc<"settings">, "_id" | "_creationTime" | "businessId" | "updatedAt" | "version" | "logoId">;
+
+/** Creates a business with the caller as its first admin and default
+ *  settings (or `settings`, from an import), and returns the caller's access
+ *  to it. Shared by `create` and the desktop import. */
+export async function startBusiness(
+  ctx: MutationCtx,
+  who: Identity,
+  a: { name: string; timezone: string; language: "en" | "es"; currencyCode: string },
+  opts: { settings?: Partial<SettingsFields>; nextRecordNo?: number; reason?: string } = {},
+): Promise<Access> {
+  if (!(await hitLimit(ctx, `business:create:${who.userId}`, 3, 24 * 60 * 60_000))) fail("rate_limited");
+  const name = text("name", a.name, 80, { required: true, oneLine: true });
+  if (!isValidTimeZone(a.timezone)) fail("invalid", { field: "timezone", reason: "timezone" });
+  if (!CURRENCIES.includes(a.currencyCode)) fail("invalid", { field: "currency", reason: "currency" });
+  const now = Date.now();
+  const businessId = await ctx.db.insert("businesses", {
+    name,
+    timezone: a.timezone,
+    createdBy: who.userId,
+    createdAt: now,
+    nextRecordNo: opts.nextRecordNo ?? 1,
+  });
+  const memberId = await ctx.db.insert("members", {
+    businessId,
+    userId: who.userId,
+    email: who.email,
+    name: who.name,
+    role: "admin",
+    active: true,
+    joinedAt: now,
+  });
+  await ctx.db.insert("settings", {
+    businessId,
+    receiptName: name,
+    companyAddress: "",
+    companyPhone: "",
+    receiptCompany: { name: true, address: true, phone: true },
+    receiptClient: { name: true, idNumber: true, phone: true, address: true },
+    receiptText: {},
+    currencyCode: a.currencyCode,
+    numberStyle: "comma_dot",
+    dateStyle: "medium",
+    language: a.language,
+    defaultRate: 100_000,
+    defaultFrequency: "monthly",
+    lateFeeRate: 50_000,
+    receiptAfterPayment: true,
+    receiptAfterLoan: true,
+    ...opts.settings,
+    updatedAt: now,
+    version: 1,
+  });
+  const business = (await ctx.db.get(businessId))!;
+  const member = (await ctx.db.get(memberId))!;
+  const access: Access = { ...who, business, member, today: todayIn(business.timezone) };
+  await logChange(
+    ctx,
+    access,
+    "member",
+    memberId,
+    "create",
+    new Diff().added("role", "admin").added("email", who.email),
+    opts.reason ?? "Created the business",
+  );
+  return access;
+}
 
 export const update = mutation({
   args: { businessId: v.id("businesses"), name: v.string(), timezone: v.string() },

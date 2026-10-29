@@ -1,0 +1,1419 @@
+{
+ "book": {
+  "business": {
+   "name": "Préstamos Valdez",
+   "timezone": "America/Santo_Domingo",
+   "language": "en",
+   "currencyCode": "DOP"
+  },
+  "settings": {
+   "receiptName": "Préstamos Valdez",
+   "companyAddress": "",
+   "companyPhone": "",
+   "receiptCompany": {
+    "name": true,
+    "address": true,
+    "phone": true
+   },
+   "receiptClient": {
+    "name": true,
+    "idNumber": true,
+    "phone": true,
+    "address": true
+   },
+   "receiptText": {},
+   "numberStyle": "comma_dot",
+   "dateStyle": "medium",
+   "defaultRate": 100000,
+   "defaultFrequency": "monthly",
+   "lateFeeRate": 50000,
+   "receiptAfterPayment": true,
+   "receiptAfterLoan": true
+  },
+  "clients": [
+   {
+    "no": 1,
+    "fullName": "Marta Quiroga",
+    "phone": "809-555-0142",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "Prefiere WhatsApp después de las 6 pm.",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 2,
+    "fullName": "Daniel Okafor",
+    "phone": "829-555-0178",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "Negocio de comida; flujo bajo en diciembre.",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 3,
+    "fullName": "Priya Raman",
+    "phone": "849-555-0163",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 4,
+    "fullName": "Tomás Herrera",
+    "phone": "809-555-0119",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "Pagó parcial en septiembre.",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 5,
+    "fullName": "Grace Lindqvist",
+    "phone": "829-555-0190",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 6,
+    "fullName": "Samuel Mensah",
+    "phone": "809-555-0101",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "Préstamo para equipo, en cuotas.",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 7,
+    "fullName": "Lucía Fernández",
+    "phone": "",
+    "email": "",
+    "idNumber": "001-0000000-1",
+    "address": "Calle 1",
+    "notes": "",
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 8,
+    "fullName": "Cliente Archivado",
+    "phone": "",
+    "email": "",
+    "idNumber": "",
+    "address": "",
+    "notes": "",
+    "createdAt": 1793261076000,
+    "archivedAt": 1793261076000
+   }
+  ],
+  "loans": [
+   {
+    "no": 1,
+    "clientNo": 1,
+    "principal": 5000000,
+    "rate": 100000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-04-27",
+    "status": "active",
+    "statusDate": "2026-04-27",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 2,
+    "clientNo": 2,
+    "principal": 2000000,
+    "rate": 150000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-07-01",
+    "status": "active",
+    "statusDate": "2026-07-01",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 3,
+    "clientNo": 3,
+    "principal": 1000000,
+    "rate": 50000,
+    "interestPeriod": "biweekly",
+    "frequency": "biweekly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-05-22",
+    "status": "paid_off",
+    "statusDate": "2026-07-22",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 4,
+    "clientNo": 4,
+    "principal": 3500000,
+    "rate": 100000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-07-26",
+    "status": "active",
+    "statusDate": "2026-07-26",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 5,
+    "clientNo": 5,
+    "principal": 1500000,
+    "rate": 100000,
+    "interestPeriod": "biweekly",
+    "frequency": "biweekly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-10-03",
+    "status": "active",
+    "statusDate": "2026-10-03",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 6,
+    "clientNo": 3,
+    "principal": 2500000,
+    "rate": 100000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "interest_only",
+    "installments": null,
+    "scheduleEdited": false,
+    "schedule": [],
+    "lateFeeRate": 0,
+    "startDate": "2026-09-19",
+    "status": "active",
+    "statusDate": "2026-09-19",
+    "notes": "Para inventario de la tienda",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 7,
+    "clientNo": 6,
+    "principal": 3000000,
+    "rate": 100000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "declining",
+    "installments": 6,
+    "scheduleEdited": false,
+    "schedule": [
+     {
+      "seq": 1,
+      "due": "2026-08-21",
+      "principal": 500000,
+      "interest": 300000
+     },
+     {
+      "seq": 2,
+      "due": "2026-09-21",
+      "principal": 500000,
+      "interest": 250000
+     },
+     {
+      "seq": 3,
+      "due": "2026-10-21",
+      "principal": 500000,
+      "interest": 200000
+     },
+     {
+      "seq": 4,
+      "due": "2026-11-21",
+      "principal": 500000,
+      "interest": 150000
+     },
+     {
+      "seq": 5,
+      "due": "2026-12-21",
+      "principal": 500000,
+      "interest": 100000
+     },
+     {
+      "seq": 6,
+      "due": "2027-01-21",
+      "principal": 500000,
+      "interest": 50000
+     }
+    ],
+    "lateFeeRate": 50000,
+    "startDate": "2026-07-21",
+    "status": "active",
+    "statusDate": "2026-07-21",
+    "notes": "Equipo de cocina",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 8,
+    "clientNo": 5,
+    "principal": 800000,
+    "rate": 50000,
+    "interestPeriod": "weekly",
+    "frequency": "weekly",
+    "method": "flat",
+    "installments": 8,
+    "scheduleEdited": false,
+    "schedule": [
+     {
+      "seq": 1,
+      "due": "2026-10-19",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 2,
+      "due": "2026-10-26",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 3,
+      "due": "2026-11-02",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 4,
+      "due": "2026-11-09",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 5,
+      "due": "2026-11-16",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 6,
+      "due": "2026-11-23",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 7,
+      "due": "2026-11-30",
+      "principal": 100000,
+      "interest": 40000
+     },
+     {
+      "seq": 8,
+      "due": "2026-12-07",
+      "principal": 100000,
+      "interest": 40000
+     }
+    ],
+    "lateFeeRate": 50000,
+    "startDate": "2026-10-12",
+    "status": "active",
+    "statusDate": "2026-10-12",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 9,
+    "clientNo": 7,
+    "principal": 1200000,
+    "rate": 80000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "declining",
+    "installments": 6,
+    "scheduleEdited": false,
+    "schedule": [
+     {
+      "seq": 1,
+      "due": "2026-07-01",
+      "principal": 200000,
+      "interest": 96000
+     },
+     {
+      "seq": 2,
+      "due": "2026-08-01",
+      "principal": 200000,
+      "interest": 80000
+     },
+     {
+      "seq": 3,
+      "due": "2026-09-01",
+      "principal": 200000,
+      "interest": 64000
+     },
+     {
+      "seq": 4,
+      "due": "2026-10-01",
+      "principal": 200000,
+      "interest": 48000
+     },
+     {
+      "seq": 5,
+      "due": "2026-11-01",
+      "principal": 200000,
+      "interest": 32000
+     },
+     {
+      "seq": 6,
+      "due": "2026-12-01",
+      "principal": 200000,
+      "interest": 16000
+     }
+    ],
+    "lateFeeRate": 50000,
+    "startDate": "2026-06-01",
+    "status": "active",
+    "statusDate": "2026-06-01",
+    "notes": "",
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 10,
+    "clientNo": 7,
+    "principal": 1200000,
+    "rate": 80000,
+    "interestPeriod": "monthly",
+    "frequency": "monthly",
+    "method": "flat",
+    "installments": 4,
+    "scheduleEdited": false,
+    "schedule": [
+     {
+      "seq": 1,
+      "due": "2026-08-01",
+      "principal": 300000,
+      "interest": 96000
+     },
+     {
+      "seq": 2,
+      "due": "2026-09-01",
+      "principal": 300000,
+      "interest": 96000
+     },
+     {
+      "seq": 3,
+      "due": "2026-10-01",
+      "principal": 300000,
+      "interest": 96000
+     },
+     {
+      "seq": 4,
+      "due": "2026-11-01",
+      "principal": 300000,
+      "interest": 96000
+     }
+    ],
+    "lateFeeRate": 50000,
+    "startDate": "2026-07-01",
+    "status": "defaulted",
+    "statusDate": "2026-10-09",
+    "notes": "",
+    "createdAt": 1793261076000
+   }
+  ],
+  "statusEvents": [
+   {
+    "loanNo": 1,
+    "status": "active",
+    "occurredOn": "2026-04-27",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 2,
+    "status": "active",
+    "occurredOn": "2026-07-01",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 3,
+    "status": "active",
+    "occurredOn": "2026-05-22",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 3,
+    "status": "paid_off",
+    "occurredOn": "2026-07-22",
+    "note": "Paid in full",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 4,
+    "status": "active",
+    "occurredOn": "2026-07-26",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 5,
+    "status": "active",
+    "occurredOn": "2026-10-03",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 6,
+    "status": "active",
+    "occurredOn": "2026-09-19",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 7,
+    "status": "active",
+    "occurredOn": "2026-07-21",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 8,
+    "status": "active",
+    "occurredOn": "2026-10-12",
+    "note": "Loan disbursed",
+    "createdAt": 1793261070000
+   },
+   {
+    "loanNo": 9,
+    "status": "active",
+    "occurredOn": "2026-06-01",
+    "note": "Loan disbursed",
+    "createdAt": 1793261076000
+   },
+   {
+    "loanNo": 10,
+    "status": "active",
+    "occurredOn": "2026-07-01",
+    "note": "Loan disbursed",
+    "createdAt": 1793261076000
+   },
+   {
+    "loanNo": 10,
+    "status": "defaulted",
+    "occurredOn": "2026-10-09",
+    "note": "No responde",
+    "createdAt": 1793261076000
+   }
+  ],
+  "payments": [
+   {
+    "no": 1,
+    "loanNo": 1,
+    "paidOn": "2026-05-27",
+    "amount": 1000000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 500000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 2,
+    "loanNo": 1,
+    "paidOn": "2026-06-27",
+    "amount": 950000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 450000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 3,
+    "loanNo": 1,
+    "paidOn": "2026-07-27",
+    "amount": 900000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 400000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 4,
+    "loanNo": 1,
+    "paidOn": "2026-08-27",
+    "amount": 850000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 350000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 5,
+    "loanNo": 1,
+    "paidOn": "2026-09-27",
+    "amount": 800000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 300000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 6,
+    "loanNo": 1,
+    "paidOn": "2026-10-27",
+    "amount": 750000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 250000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 7,
+    "loanNo": 2,
+    "paidOn": "2026-08-01",
+    "amount": 300000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 300000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 8,
+    "loanNo": 2,
+    "paidOn": "2026-09-01",
+    "amount": 300000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 300000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 9,
+    "loanNo": 3,
+    "paidOn": "2026-06-06",
+    "amount": 50000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 50000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 10,
+    "loanNo": 3,
+    "paidOn": "2026-06-22",
+    "amount": 50000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 50000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 11,
+    "loanNo": 3,
+    "paidOn": "2026-07-07",
+    "amount": 50000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 50000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 12,
+    "loanNo": 3,
+    "paidOn": "2026-07-22",
+    "amount": 1050000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 1000000,
+    "interest": 50000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 13,
+    "loanNo": 4,
+    "paidOn": "2026-08-26",
+    "amount": 350000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 350000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 14,
+    "loanNo": 4,
+    "paidOn": "2026-09-26",
+    "amount": 350000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 350000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 15,
+    "loanNo": 4,
+    "paidOn": "2026-10-26",
+    "amount": 200000,
+    "notes": "Parcial",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 200000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 16,
+    "loanNo": 5,
+    "paidOn": "2026-10-18",
+    "amount": 150000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 0,
+    "interest": 150000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 17,
+    "loanNo": 6,
+    "paidOn": "2026-10-19",
+    "amount": 500000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 250000,
+    "interest": 250000,
+    "fee": 0,
+    "applied": [],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 18,
+    "loanNo": 7,
+    "paidOn": "2026-08-21",
+    "amount": 800000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 300000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 1,
+      "principal": 500000,
+      "interest": 300000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 19,
+    "loanNo": 7,
+    "paidOn": "2026-09-21",
+    "amount": 750000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 500000,
+    "interest": 250000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 2,
+      "principal": 500000,
+      "interest": 250000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 20,
+    "loanNo": 7,
+    "paidOn": "2026-10-21",
+    "amount": 300000,
+    "notes": "Pago parcial",
+    "mode": "installment",
+    "targetSeq": 3,
+    "principal": 100000,
+    "interest": 200000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 3,
+      "principal": 100000,
+      "interest": 200000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 21,
+    "loanNo": 8,
+    "paidOn": "2026-10-19",
+    "amount": 140000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 100000,
+    "interest": 40000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 1,
+      "principal": 100000,
+      "interest": 40000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 22,
+    "loanNo": 9,
+    "paidOn": "2026-07-01",
+    "amount": 296000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 200000,
+    "interest": 96000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 1,
+      "principal": 200000,
+      "interest": 96000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 23,
+    "loanNo": 9,
+    "paidOn": "2026-08-01",
+    "amount": 150000,
+    "notes": "",
+    "mode": "spread",
+    "targets": [
+     {
+      "seq": 2,
+      "amount": 100000
+     },
+     {
+      "seq": 3,
+      "amount": 50000
+     }
+    ],
+    "principal": 70000,
+    "interest": 80000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 2,
+      "principal": 20000,
+      "interest": 80000,
+      "fee": 0
+     },
+     {
+      "seq": 3,
+      "principal": 50000,
+      "interest": 0,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 24,
+    "loanNo": 9,
+    "paidOn": "2026-09-10",
+    "amount": 80000,
+    "notes": "",
+    "mode": "installment",
+    "targetSeq": 2,
+    "principal": 80000,
+    "interest": 0,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 2,
+      "principal": 80000,
+      "interest": 0,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 25,
+    "loanNo": 9,
+    "paidOn": "2026-10-13",
+    "amount": 120000,
+    "notes": "",
+    "mode": "custom",
+    "principal": 70000,
+    "interest": 40000,
+    "fee": 10000,
+    "applied": [
+     {
+      "seq": 2,
+      "principal": 70000,
+      "interest": 0,
+      "fee": 0
+     },
+     {
+      "seq": 3,
+      "principal": 0,
+      "interest": 40000,
+      "fee": 10000
+     }
+    ],
+    "createdAt": 1793261076000
+   },
+   {
+    "no": 26,
+    "loanNo": 10,
+    "paidOn": "2026-08-01",
+    "amount": 396000,
+    "notes": "",
+    "mode": "auto",
+    "principal": 300000,
+    "interest": 96000,
+    "fee": 0,
+    "applied": [
+     {
+      "seq": 1,
+      "principal": 300000,
+      "interest": 96000,
+      "fee": 0
+     }
+    ],
+    "createdAt": 1793261076000
+   }
+  ],
+  "lateFees": [
+   {
+    "loanNo": 7,
+    "seq": 3,
+    "assessedOn": "2026-10-22",
+    "baseAmount": 400000,
+    "rate": 50000,
+    "amount": 20000,
+    "waiveReason": "",
+    "createdAt": 1793261070000,
+    "updatedAt": 1793261070000
+   },
+   {
+    "loanNo": 8,
+    "seq": 2,
+    "assessedOn": "2026-10-27",
+    "baseAmount": 140000,
+    "rate": 50000,
+    "amount": 7000,
+    "waiveReason": "",
+    "createdAt": 1793261070000,
+    "updatedAt": 1793261070000
+   },
+   {
+    "loanNo": 9,
+    "seq": 2,
+    "assessedOn": "2026-08-02",
+    "baseAmount": 180000,
+    "rate": 50000,
+    "amount": 9000,
+    "waivedAt": 1793261076000,
+    "waiveReason": "Cliente avisó",
+    "createdAt": 1793261076000,
+    "updatedAt": 1793261076000
+   },
+   {
+    "loanNo": 9,
+    "seq": 3,
+    "assessedOn": "2026-09-02",
+    "baseAmount": 224400,
+    "rate": 50000,
+    "amount": 11220,
+    "waiveReason": "",
+    "createdAt": 1793261076000,
+    "updatedAt": 1793261076000
+   },
+   {
+    "loanNo": 9,
+    "seq": 4,
+    "assessedOn": "2026-10-02",
+    "baseAmount": 274400,
+    "rate": 50000,
+    "amount": 13720,
+    "waiveReason": "",
+    "createdAt": 1793261076000,
+    "updatedAt": 1793261076000
+   },
+   {
+    "loanNo": 10,
+    "seq": 2,
+    "assessedOn": "2026-09-02",
+    "baseAmount": 396000,
+    "rate": 50000,
+    "amount": 19800,
+    "waiveReason": "",
+    "createdAt": 1793261076000,
+    "updatedAt": 1793261076000
+   },
+   {
+    "loanNo": 10,
+    "seq": 3,
+    "assessedOn": "2026-10-02",
+    "baseAmount": 396000,
+    "rate": 50000,
+    "amount": 19800,
+    "waiveReason": "",
+    "createdAt": 1793261076000,
+    "updatedAt": 1793261076000
+   }
+  ],
+  "capital": [
+   {
+    "no": 1,
+    "kind": "contribution",
+    "amount": 30000000,
+    "occurredOn": "2026-04-12",
+    "notes": "Ahorros para prestar",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 2,
+    "kind": "contribution",
+    "amount": 10000000,
+    "occurredOn": "2026-07-31",
+    "notes": "",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 3,
+    "kind": "withdrawal",
+    "amount": 2000000,
+    "occurredOn": "2026-09-29",
+    "notes": "Gasto personal",
+    "createdAt": 1793261070000
+   }
+  ],
+  "entries": [
+   {
+    "no": 1,
+    "kind": "transfer",
+    "account": "interest",
+    "amount": 1000000,
+    "occurredOn": "2026-10-09",
+    "description": "Reinvertir ganancias",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 2,
+    "kind": "expense",
+    "account": "interest",
+    "amount": 350000,
+    "occurredOn": "2026-10-23",
+    "description": "Reparación del carro",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 3,
+    "kind": "income",
+    "account": "interest",
+    "amount": 800000,
+    "occurredOn": "2026-10-17",
+    "description": "Alquiler del local",
+    "createdAt": 1793261070000
+   },
+   {
+    "no": 4,
+    "kind": "expense",
+    "account": "capital",
+    "amount": 50000,
+    "occurredOn": "2026-10-24",
+    "description": "Papelería",
+    "createdAt": 1793261076000
+   }
+  ],
+  "changes": [
+   {
+    "entity": "late_fee",
+    "entityNo": 3,
+    "loanNo": 7,
+    "action": "update",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "37500",
+      "new": "35000"
+     },
+     {
+      "field": "fee_base",
+      "old": "750000",
+      "new": "700000"
+     }
+    ],
+    "reason": "Recalculated after a change",
+    "createdAt": 1793261070000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 2,
+    "loanNo": 7,
+    "action": "delete",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "37500",
+      "new": ""
+     },
+     {
+      "field": "fee_base",
+      "old": "750000",
+      "new": ""
+     }
+    ],
+    "reason": "No longer overdue after a change",
+    "createdAt": 1793261070000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 3,
+    "loanNo": 7,
+    "action": "update",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "35000",
+      "new": "20000"
+     },
+     {
+      "field": "fee_base",
+      "old": "700000",
+      "new": "400000"
+     }
+    ],
+    "reason": "Recalculated after a change",
+    "createdAt": 1793261070000
+   },
+   {
+    "entity": "loan",
+    "entityNo": 6,
+    "loanNo": 6,
+    "action": "update",
+    "changes": [
+     {
+      "field": "notes",
+      "old": "",
+      "new": "Para inventario de la tienda"
+     }
+    ],
+    "reason": "Faltaba el motivo",
+    "createdAt": 1793261070000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 2,
+    "loanNo": 9,
+    "action": "update",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "14000",
+      "new": "9000"
+     },
+     {
+      "field": "fee_base",
+      "old": "280000",
+      "new": "180000"
+     }
+    ],
+    "reason": "Recalculated after a change",
+    "createdAt": 1793261076000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 3,
+    "loanNo": 9,
+    "action": "update",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "14000",
+      "new": "11220"
+     },
+     {
+      "field": "fee_base",
+      "old": "280000",
+      "new": "224400"
+     }
+    ],
+    "reason": "Recalculated after a change",
+    "createdAt": 1793261076000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 4,
+    "loanNo": 9,
+    "action": "update",
+    "changes": [
+     {
+      "field": "amount",
+      "old": "14000",
+      "new": "13720"
+     },
+     {
+      "field": "fee_base",
+      "old": "280000",
+      "new": "274400"
+     }
+    ],
+    "reason": "Recalculated after a change",
+    "createdAt": 1793261076000
+   },
+   {
+    "entity": "late_fee",
+    "entityNo": 2,
+    "loanNo": 9,
+    "action": "update",
+    "changes": [
+     {
+      "field": "waived",
+      "old": "false",
+      "new": "true"
+     }
+    ],
+    "reason": "Cliente avisó",
+    "createdAt": 1793261076000
+   }
+  ]
+ },
+ "expected": {
+  "asOf": "2026-10-29",
+  "summary": {
+   "contributions": 40000000,
+   "withdrawals": 2000000,
+   "principalDisbursed": 21700000,
+   "principalRepaid": 6170000,
+   "interestCollected": 5452000,
+   "feesCollected": 10000,
+   "capitalExpenses": 50000,
+   "interestExpenses": 350000,
+   "capitalIncome": 0,
+   "otherIncome": 800000,
+   "capitalAdjustments": 0,
+   "interestAdjustments": 0,
+   "availableCapital": 23420000,
+   "availableInterest": 4912000,
+   "availableCash": 28332000,
+   "outstandingPrincipal": 14630000,
+   "interestReceivable": 598800,
+   "feesReceivable": 41940,
+   "defaultedPrincipal": 900000,
+   "defaultedInterest": 192000,
+   "portfolioValue": 43602740,
+   "activeLoans": 8,
+   "overdueLoans": 5,
+   "dueSoonLoans": 1,
+   "overdueAmount": 1520740,
+   "expectedMonthlyInterest": 1798829
+  },
+  "loans": [
+   {
+    "no": 1,
+    "principalOutstanding": 2000000,
+    "interestOutstanding": 200000,
+    "interestChargedTotal": 2450000,
+    "interestPaid": 2250000,
+    "principalPaid": 3000000,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 5250000,
+    "overdueAmount": 0,
+    "daysOverdue": 0
+   },
+   {
+    "no": 3,
+    "principalOutstanding": 0,
+    "interestOutstanding": 0,
+    "interestChargedTotal": 200000,
+    "interestPaid": 200000,
+    "principalPaid": 1000000,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 1200000,
+    "overdueAmount": 0,
+    "daysOverdue": 0
+   },
+   {
+    "no": 9,
+    "principalOutstanding": 780000,
+    "interestOutstanding": 176800,
+    "interestChargedTotal": 392800,
+    "interestPaid": 216000,
+    "principalPaid": 420000,
+    "feesPaid": 10000,
+    "feesOutstanding": 14940,
+    "paidTotal": 646000,
+    "overdueAmount": 503740,
+    "daysOverdue": 89
+   },
+   {
+    "no": 2,
+    "principalOutstanding": 2000000,
+    "interestOutstanding": 600000,
+    "interestChargedTotal": 1200000,
+    "interestPaid": 600000,
+    "principalPaid": 0,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 600000,
+    "overdueAmount": 300000,
+    "daysOverdue": 28
+   },
+   {
+    "no": 10,
+    "principalOutstanding": 900000,
+    "interestOutstanding": 288000,
+    "interestChargedTotal": 384000,
+    "interestPaid": 96000,
+    "principalPaid": 300000,
+    "feesPaid": 0,
+    "feesOutstanding": 39600,
+    "paidTotal": 396000,
+    "overdueAmount": 0,
+    "daysOverdue": 0
+   },
+   {
+    "no": 7,
+    "principalOutstanding": 1900000,
+    "interestOutstanding": 190000,
+    "interestChargedTotal": 940000,
+    "interestPaid": 750000,
+    "principalPaid": 1100000,
+    "feesPaid": 0,
+    "feesOutstanding": 20000,
+    "paidTotal": 1850000,
+    "overdueAmount": 420000,
+    "daysOverdue": 8
+   },
+   {
+    "no": 4,
+    "principalOutstanding": 3500000,
+    "interestOutstanding": 500000,
+    "interestChargedTotal": 1400000,
+    "interestPaid": 900000,
+    "principalPaid": 0,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 900000,
+    "overdueAmount": 150000,
+    "daysOverdue": 3
+   },
+   {
+    "no": 6,
+    "principalOutstanding": 2250000,
+    "interestOutstanding": 225000,
+    "interestChargedTotal": 475000,
+    "interestPaid": 250000,
+    "principalPaid": 250000,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 500000,
+    "overdueAmount": 0,
+    "daysOverdue": 0
+   },
+   {
+    "no": 5,
+    "principalOutstanding": 1500000,
+    "interestOutstanding": 150000,
+    "interestChargedTotal": 300000,
+    "interestPaid": 150000,
+    "principalPaid": 0,
+    "feesPaid": 0,
+    "feesOutstanding": 0,
+    "paidTotal": 150000,
+    "overdueAmount": 0,
+    "daysOverdue": 0
+   },
+   {
+    "no": 8,
+    "principalOutstanding": 700000,
+    "interestOutstanding": 80000,
+    "interestChargedTotal": 120000,
+    "interestPaid": 40000,
+    "principalPaid": 100000,
+    "feesPaid": 0,
+    "feesOutstanding": 7000,
+    "paidTotal": 140000,
+    "overdueAmount": 147000,
+    "daysOverdue": 3
+   }
+  ]
+ }
+}
