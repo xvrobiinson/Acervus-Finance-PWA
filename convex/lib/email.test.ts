@@ -13,6 +13,9 @@ describe("parseSender", () => {
     expect(parseSender("Acervus Finance <me@gmail.com>")).toEqual({ name: "Acervus Finance", email: "me@gmail.com" });
     expect(parseSender('"Acervus" <me@gmail.com>')).toEqual({ name: "Acervus", email: "me@gmail.com" });
   });
+  test("name without angle brackets", () => {
+    expect(parseSender("Acervus Finance me@gmail.com")).toEqual({ name: "Acervus Finance", email: "me@gmail.com" });
+  });
   test("bare address", () => {
     expect(parseSender(" me@gmail.com ")).toEqual({ email: "me@gmail.com" });
   });

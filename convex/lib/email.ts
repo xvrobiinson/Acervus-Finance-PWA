@@ -21,10 +21,12 @@ export function emailConfigured(): boolean {
   return Boolean((process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) && process.env.EMAIL_FROM);
 }
 
-/** "Name <address>" or a bare address, as Brevo wants it. */
+/** "Name <address>", "Name address" or a bare address, as Brevo wants it. */
 export function parseSender(from: string): { name?: string; email: string } {
-  const m = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
-  return m ? { ...(m[1] ? { name: m[1].replace(/^"|"$/g, "") } : {}), email: m[2] } : { email: from.trim() };
+  const m = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/) ?? from.match(/^\s*(.*?)\s*(\S+@\S+)\s*$/);
+  if (!m) return { email: from.trim() };
+  const name = m[1].replace(/^"|"$/g, "");
+  return { ...(name ? { name } : {}), email: m[2] };
 }
 
 function request(email: Email, from: string): { url: string; headers: Record<string, string>; body: unknown } {
