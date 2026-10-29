@@ -1,10 +1,13 @@
-// Transactional email (sign-in codes, invitations) through Resend's HTTP API.
-// Server-only: RESEND_API_KEY and EMAIL_FROM are Convex environment variables
-// and never reach the browser.
+// Transactional email (sign-in codes, invitations) through Brevo's or
+// Resend's HTTP API. Server-only: BREVO_API_KEY or RESEND_API_KEY, and
+// EMAIL_FROM, are Convex environment variables and never reach the browser.
 //
-// Without RESEND_API_KEY / EMAIL_FROM the message is written to the Convex
-// logs instead, so sign-in works before an email provider is connected.
-// Anyone with log access can then read sign-in codes: connect Resend before
+// Brevo can send from a single verified address (no domain needed); Resend
+// needs a verified domain. If both keys are set, Brevo is used.
+//
+// Without a key and EMAIL_FROM the message is written to the Convex logs
+// instead, so sign-in works before an email provider is connected. Anyone
+// with log access can then read sign-in codes: connect a provider before
 // real users arrive.
 
 export interface Email {
@@ -15,27 +18,47 @@ export interface Email {
 }
 
 export function emailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+  return Boolean((process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) && process.env.EMAIL_FROM);
+}
+
+/** "Name <address>" or a bare address, as Brevo wants it. */
+export function parseSender(from: string): { name?: string; email: string } {
+  const m = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  return m ? { ...(m[1] ? { name: m[1].replace(/^"|"$/g, "") } : {}), email: m[2] } : { email: from.trim() };
+}
+
+function request(email: Email, from: string): { url: string; headers: Record<string, string>; body: unknown } {
+  const brevo = process.env.BREVO_API_KEY;
+  if (brevo) {
+    return {
+      url: "https://api.brevo.com/v3/smtp/email",
+      headers: { "api-key": brevo },
+      body: {
+        sender: parseSender(from),
+        to: [{ email: email.to }],
+        subject: email.subject,
+        textContent: email.text,
+        htmlContent: email.html,
+      },
+    };
+  }
+  return {
+    url: "https://api.resend.com/emails",
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+    body: { from, to: [email.to], subject: email.subject, text: email.text, html: email.html },
+  };
 }
 
 export async function sendEmail(email: Email): Promise<void> {
   if (!emailConfigured()) {
-    console.log(`[email not sent: no RESEND_API_KEY] to=${email.to} subject=${email.subject}\n${email.text}`);
+    console.log(`[email not sent: no email provider] to=${email.to} subject=${email.subject}\n${email.text}`);
     return;
   }
-  const res = await fetch("https://api.resend.com/emails", {
+  const req = request(email, process.env.EMAIL_FROM!);
+  const res = await fetch(req.url, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM,
-      to: [email.to],
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
-    }),
+    headers: { ...req.headers, "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(req.body),
   });
   if (!res.ok) {
     // The provider's message can contain the address; log the status only.
