@@ -129,6 +129,19 @@ accepted (the cloud numbers all records of a business with one counter), so
 receipts wait for the accepted copy and find the record by its cloud id; a
 linked desktop shouldn't assess late fees itself (the cloud does, hourly).
 
+3d (2026-10-29): ID photos and the logo. `Change::ClientPhoto` and
+`Change::Logo` queue the file (base64) with the mutation; the worker
+uploads it to storage first (`photoUploadUrl` / `logoUploadUrl`) and a
+failed upload leaves the change waiting. After each copy,
+`Store::cloud_downloads` lists what to fetch (`cloud_files` tracks the
+client version and logo address already held); `Worker::download` fetches
+photos from `/client-photo` with the user's token (admins only) and the
+logo from its address. Photos are kept as JPEG encrypted with DPAPI for the
+Windows user; a copy for a non-admin is deleted and none are fetched;
+`forget_cloud_photos` is for signing out. A new client's photo is sent once
+the cloud has the client (phase 4 form). Tested on a local backend: photo
+and logo up and back down, and a late fee waived (the last change kind).
+
 Original outline:
 - `src/sync/`: the Convex client on a background thread; sign-in by email
   code; the session kept in Windows Credential Manager, never in a file.
