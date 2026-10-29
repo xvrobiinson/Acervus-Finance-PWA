@@ -102,6 +102,16 @@ sign-in, session in Credential Manager, version check, snapshot feed);
 3b replica (migration 0007, applying snapshots); 3c outbox and the write
 path; 3d ID photos (DPAPI); then phase 4, the screens.
 
+Done so far (desktop repo, not released): 3a; 3b (2026-10-29). A linked
+business gets its own database file (`%LOCALAPPDATA%\VZFinance\cloud\<business
+id>.db`), so the books kept on the PC before linking are never changed and
+stay the rollback. `sync::replica::apply` refuses a file with its own books
+or another business's, keeps client photos, this PC's preferences, the change
+history and the outbox, and is all or nothing. Tested end to end: the seed
+demo exported, imported into a local backend, received by the worker and
+applied gives the same 26 figures and per-loan figures as the desktop that
+exported it (`tests/sync_local.rs`). The logo download goes with 3d.
+
 Original outline:
 - `src/sync/`: the Convex client on a background thread; sign-in by email
   code; the session kept in Windows Credential Manager, never in a file.
