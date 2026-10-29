@@ -51,6 +51,7 @@ function authError(t: ReturnType<typeof useT>, e: AuthFailure): string | null {
   if (e.code === "INVALID_OTP") return t("That code is wrong. Check it and try again.", "Ese código no es correcto. Revísalo e inténtalo de nuevo.");
   if (e.code === "OTP_EXPIRED") return t("That code expired. Send a new one.", "Ese código venció. Pide uno nuevo.");
   if (e.code === "TOO_MANY_ATTEMPTS") return t("Too many wrong tries for this code. Send a new one.", "Demasiados intentos con este código. Pide uno nuevo.");
+  if (e.code === "EMAIL_NOT_SENT") return t("We couldn't email your code. Try again in a few minutes.", "No pudimos enviarte el código por correo. Inténtalo de nuevo en unos minutos.");
   if (e.status === 429) return t("Too many attempts. Wait a few minutes and try again.", "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
   if (!navigator.onLine) return t("No connection. Try again when you're online.", "Sin conexión. Inténtalo de nuevo cuando estés en línea.");
   return e.message || t("Something went wrong. Try again.", "Algo salió mal. Inténtalo de nuevo.");

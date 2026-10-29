@@ -51,6 +51,10 @@ function googleProvider(): BetterAuthOptions["socialProviders"] {
 }
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
+  // Better Auth logs and swallows errors from sendVerificationOTP and still
+  // answers "sent". This flag (one per request, as createAuth runs per
+  // request) lets the after hook turn a failed send into a visible error.
+  let codeNotSent = false;
   return betterAuth({
     baseURL: process.env.CONVEX_SITE_URL,
     trustedOrigins: [siteUrl],
@@ -89,6 +93,14 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
           throw new APIError("TOO_MANY_REQUESTS", { message: "Too many attempts. Wait a few minutes and try again." });
         }
       }),
+      after: createAuthMiddleware(async (mw) => {
+        if (mw.path === SEND_CODE_PATH && codeNotSent) {
+          throw new APIError("SERVICE_UNAVAILABLE", {
+            code: "EMAIL_NOT_SENT",
+            message: "The code could not be emailed. Try again later.",
+          });
+        }
+      }),
     },
     plugins: [
       emailOTP({
@@ -98,7 +110,12 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
         storeOTP: "hashed",
         sendVerificationOTP: async ({ email, otp, type }) => {
           if (type !== "sign-in") return;
-          await sendEmail(codeEmail({ to: email, code: otp, minutes: CODE_LIFETIME_MINUTES }));
+          try {
+            await sendEmail(codeEmail({ to: email, code: otp, minutes: CODE_LIFETIME_MINUTES }));
+          } catch (e) {
+            codeNotSent = true;
+            throw e;
+          }
         },
       }),
       crossDomain({ siteUrl }),
