@@ -176,6 +176,19 @@ Progress (2026-10-29, desktop repo, version 0.7.0, not released):
   List, so `vz-labs.workers.dev` and `proper-pony-55.convex.site` count as
   domains of their own. Google's return address is
   `https://proper-pony-55.convex.site/api/auth/callback/google`.
+- Google sign-in works in the PWA (owner, 2026-10-29). Both apps' sign-in
+  pages now look alike (a sky, a glass card, Continue with Google). The
+  desktop's Google sign-in (RFC 8252 loopback): it asks
+  `/sign-in/social` with `callbackURL` = the PWA's `desktop-sign-in.html`
+  carrying this PC's port and a random `state`; after Google, the
+  cross-domain plugin adds a one-time token (the PWA's origin is trusted),
+  and the static page (not the SPA, which would use the token itself)
+  sends it only to `http://127.0.0.1:<port>`, where the app checks `state`
+  and trades the token at `/cross-domain/one-time-token/verify`. Tested on
+  the local backend up to Google's page and the hand-off; the full round
+  trip needs the deployed page.
+- Sidebar: the sync chip replaces "stored on this PC" while signed in
+  (approved 2026-10-29).
 
 Also in phase 4 (owner's request, 2026-10-29):
 - **"Continue with Google"** next to the email code, in the PWA and the

@@ -237,6 +237,8 @@ No code change and no redeploy are needed. The next code is sent by email instea
 2. In Convex **Production**, add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 3. In GitHub › Variables, add `VITE_GOOGLE_SIGN_IN` = `true`. Then run the Deploy workflow again.
 
+The desktop app uses the same client: it opens the browser, and Google returns through the server to `public/desktop-sign-in.html`, which hands the one-time token to the app waiting on `127.0.0.1`. Nothing else to set up; the page has to be deployed for it to work.
+
 ### Tighter security headers
 
 In `public/_headers`, replace `*.convex.cloud` and `*.convex.site` with your production deployment's exact host names, then push.

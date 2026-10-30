@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- Where "Continue with Google" in the desktop app lands. The sign-in
+     server sends the browser here with a one-time token (?ott=); this page
+     passes it to the app waiting on this PC (http://127.0.0.1:<port>) and
+     nowhere else. It is a plain page, not the PWA, so the PWA can't use the
+     token for itself first. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Acervus Finance</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { --ink: #17191c; --muted: #666c77; --card: rgba(255, 255, 255, 0.86); --top: #9fc9f1; --low: #f1f6fc; --bad: #c2353d; color-scheme: light; }
+      @media (prefers-color-scheme: dark) { :root { --ink: #f2f3f5; --muted: #a6abb4; --card: rgba(23, 24, 27, 0.88); --top: #091226; --low: #0e0f11; --bad: #f07077; color-scheme: dark; } }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 16px; font: 400 15px/22px system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: linear-gradient(180deg, var(--top), var(--low)); }
+      main { width: 100%; max-width: 380px; padding: 32px 28px; border-radius: 22px; background: var(--card); box-shadow: 0 24px 56px -12px rgba(15, 26, 46, 0.25); text-align: center; }
+      img { width: 48px; height: 48px; border-radius: 12px; }
+      h1 { margin: 16px 0 6px; font-size: 20px; line-height: 26px; font-weight: 600; }
+      p { margin: 0; color: var(--muted); }
+      .bad h1 { color: var(--bad); }
+    </style>
+    <script src="/desktop-sign-in.js" defer></script>
+  </head>
+  <body>
+    <main id="box">
+      <img src="/pwa-192x192.png" alt="" />
+      <h1 id="title">Acervus Finance</h1>
+      <p id="text"></p>
+    </main>
+  </body>
+</html>
