@@ -16,7 +16,7 @@ import { CURRENCIES, frequencyLabel, roleLabel } from "../lib/labels";
 import { defaultRules, tagList, whenHint, withRules, withText, Wording, wordingProblem, type RuleLine, type RuleSet, type When } from "../receipts/wording";
 import { useBooks } from "../state/app";
 import { Banner, Button, Card, Check, Confirm, Field, Pill, Row, Segmented, Sheet, useToast } from "../ui/kit";
-import { NewBusinessForm } from "./auth";
+import { NewBusinessForm, PendingInvites } from "./auth";
 import { RateInput, useParseError, useRate } from "../ui/inputs";
 
 export function SettingsScreen() {
@@ -120,6 +120,7 @@ function BusinessesCard() {
         )
       }
     >
+      {online && <PendingInvites className="card-body" />}
       <ul className="list">
         {(app.businesses ?? []).map((b) => {
           const open = b.businessId === app.businessId;

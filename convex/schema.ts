@@ -83,7 +83,8 @@ export default defineSchema({
     revokedAt: v.optional(v.number()),
   })
     .index("by_token", ["tokenHash"])
-    .index("by_business", ["businessId"]),
+    .index("by_business", ["businessId"])
+    .index("by_email", ["email"]),
 
   settings: defineTable({
     businessId: v.id("businesses"),

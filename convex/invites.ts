@@ -8,9 +8,9 @@
 
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
-import { action, internalMutation, mutation, query } from "./_generated/server";
-import { requireIdentity, requireMember } from "./lib/access";
+import type { Doc, Id } from "./_generated/dataModel";
+import { action, internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
+import { requireIdentity, requireMember, type Identity } from "./lib/access";
 import { Diff, logChange } from "./lib/books";
 import { actionEmail, emailConfigured, sendEmail } from "./lib/email";
 import { fail } from "./lib/errors";
@@ -150,40 +150,84 @@ export const accept = mutation({
       .withIndex("by_token", (q) => q.eq("tokenHash", tokenHash))
       .unique();
     if (!i || i.acceptedAt || i.revokedAt || i.expiresAt < Date.now()) fail("invite_invalid");
-    if (i.email !== who.email) fail("invite_other_email", { email: i.email });
+    return join(ctx, who, i);
+  },
+});
+
+/** Makes the person a member of the invitation's business and uses the
+ *  invitation up. */
+async function join(ctx: MutationCtx, who: Identity, i: Doc<"invites">): Promise<Id<"businesses">> {
+  if (i.email !== who.email) fail("invite_other_email", { email: i.email });
+  const now = Date.now();
+  const existing = await ctx.db
+    .query("members")
+    .withIndex("by_business_user", (q) => q.eq("businessId", i.businessId).eq("userId", who.userId))
+    .unique();
+  let memberId: Id<"members">;
+  if (existing) {
+    if (existing.active) fail("already_member");
+    await ctx.db.patch(existing._id, { active: true, role: i.role, removedAt: undefined, joinedAt: now, email: who.email });
+    memberId = existing._id;
+  } else {
+    memberId = await ctx.db.insert("members", {
+      businessId: i.businessId,
+      userId: who.userId,
+      email: who.email,
+      name: who.name,
+      role: i.role,
+      active: true,
+      joinedAt: now,
+    });
+  }
+  await ctx.db.patch(i._id, { acceptedAt: now, acceptedBy: who.userId });
+  const business = (await ctx.db.get(i.businessId))!;
+  const member = (await ctx.db.get(memberId))!;
+  await logChange(
+    ctx,
+    { ...who, business, member, today: "" },
+    "member",
+    memberId,
+    "create",
+    new Diff().added("email", who.email).added("role", i.role),
+    "Accepted an invitation",
+  );
+  return i.businessId;
+}
+
+/** Open invitations for the signed-in person's email, so they can be
+ *  accepted from the app without the emailed link (it gets lost when the
+ *  link opens in another browser, or Google sign-in starts over). */
+export const pending = query({
+  args: {},
+  handler: async (ctx) => {
+    const id = await ctx.auth.getUserIdentity();
+    if (!id?.email || id.emailVerified === false) return [];
     const now = Date.now();
-    const existing = await ctx.db
-      .query("members")
-      .withIndex("by_business_user", (q) => q.eq("businessId", i.businessId).eq("userId", who.userId))
-      .unique();
-    let memberId: Id<"members">;
-    if (existing) {
-      if (existing.active) fail("already_member");
-      await ctx.db.patch(existing._id, { active: true, role: i.role, removedAt: undefined, joinedAt: now, email: who.email });
-      memberId = existing._id;
-    } else {
-      memberId = await ctx.db.insert("members", {
-        businessId: i.businessId,
-        userId: who.userId,
-        email: who.email,
-        name: who.name,
-        role: i.role,
-        active: true,
-        joinedAt: now,
-      });
+    const invites = await ctx.db
+      .query("invites")
+      .withIndex("by_email", (q) => q.eq("email", id.email!.toLowerCase()))
+      .take(50);
+    const out = [];
+    for (const i of invites.filter((i) => !i.acceptedAt && !i.revokedAt && i.expiresAt >= now)) {
+      const b = await ctx.db.get(i.businessId);
+      const member = await ctx.db
+        .query("members")
+        .withIndex("by_business_user", (q) => q.eq("businessId", i.businessId).eq("userId", id.subject))
+        .unique();
+      if (b && !member?.active) out.push({ inviteId: i._id, businessName: b.name, role: i.role });
     }
-    await ctx.db.patch(i._id, { acceptedAt: now, acceptedBy: who.userId });
-    const business = (await ctx.db.get(i.businessId))!;
-    const member = (await ctx.db.get(memberId))!;
-    await logChange(
-      ctx,
-      { ...who, business, member, today: "" },
-      "member",
-      memberId,
-      "create",
-      new Diff().added("email", who.email).added("role", i.role),
-      "Accepted an invitation",
-    );
-    return i.businessId;
+    return out;
+  },
+});
+
+/** Accepts an invitation listed by `pending`. */
+export const acceptPending = mutation({
+  args: { inviteId: v.id("invites") },
+  handler: async (ctx, a): Promise<Id<"businesses">> => {
+    const who = await requireIdentity(ctx);
+    if (!(await hitLimit(ctx, `invite:accept:${who.userId}`, 20, 60 * 60_000))) fail("rate_limited");
+    const i = await ctx.db.get(a.inviteId);
+    if (!i || i.acceptedAt || i.revokedAt || i.expiresAt < Date.now() || i.email !== who.email) fail("invite_invalid");
+    return join(ctx, who, i);
   },
 });

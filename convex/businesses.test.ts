@@ -58,3 +58,26 @@ describe("businesses.remove", () => {
     expect(await errorOf(asAna.query(api.data.snapshot, { businessId: doomed }))).toMatchObject({ code: "forbidden" });
   });
 });
+
+describe("invites.pending", () => {
+  it("lets an invited person join from the app, without the emailed link", async () => {
+    process.env.SITE_URL = "https://app.example.com";
+    const t = convexTest(schema, modules);
+    const asAna = t.withIdentity(ana);
+    const asBen = t.withIdentity(ben);
+    const businessId = await asAna.mutation(api.businesses.create, { name: "Real", timezone: TZ, language: "es", currencyCode: "DOP" });
+    await asAna.action(api.invites.create, { businessId, email: " BEN@example.com ", role: "collector" });
+
+    // Signed in some other way (Google, another browser): the invitation is still there.
+    const [invite, ...more] = await asBen.query(api.invites.pending, {});
+    expect(more).toEqual([]);
+    expect(invite).toMatchObject({ businessName: "Real", role: "collector" });
+    expect(await asAna.query(api.invites.pending, {})).toEqual([]);
+    expect(await errorOf(asAna.mutation(api.invites.acceptPending, { inviteId: invite.inviteId }))).toMatchObject({ code: "invite_invalid" });
+
+    expect(await asBen.mutation(api.invites.acceptPending, { inviteId: invite.inviteId })).toBe(businessId);
+    expect(await asBen.query(api.businesses.mine, {})).toMatchObject([{ name: "Real", role: "collector" }]);
+    expect(await asBen.query(api.invites.pending, {})).toEqual([]);
+    expect(await errorOf(asBen.mutation(api.invites.acceptPending, { inviteId: invite.inviteId }))).toMatchObject({ code: "invite_invalid" });
+  });
+});

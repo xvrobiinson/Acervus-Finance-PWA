@@ -68,11 +68,22 @@ Problems found and fixed while testing:
 - Desktop-only features with no PWA equivalent: SQLite backup/restore files (replaced by Convex backups and CSV/JSON export), the Windows file picker, keyboard shortcuts, Diagnostics.
 - The receipt page-count note uses the desktop's row measurements (US Letter in Edge). Other browsers may break pages slightly differently.
 
-## To do
-1. **New design for both apps.** The owner will send example designs when ready; wait for them before changing any screens.
-2. Desktop: release the business list (switch, create, delete in Settings › Cloud sync). Committed on the desktop, not pushed; pushing `main` there makes a release, so only on the owner's word.
-3. Try a Collector account on the desktop to see the role-based hiding (not yet seen on screen).
-4. Optional: delete the old test business "VZ Finance" if the owner confirms it holds nothing real.
+## To do (in this order)
+1. **Collector test.** First try (2026-10-30): the invited person signed in and was asked to create a business instead of joining. Cause: an invitation only worked through the emailed link in the same browser tab, and Google sign-in returned to the home page and lost it. Fixed: open invitations for the signed-in email are shown with an Accept button (welcome screen and Settings › Businesses), and Google sign-in comes back to the invitation. Next: deploy, then the owner tries again and checks the desktop with that account.
+2. **New design for both apps.** The owner will send example designs when ready; wait for them before changing any screens.
+3. **Desktop release** of the business list (switch, create, delete) and whatever the redesign brings. Pushing `main` in the desktop repo makes a release, so only on the owner's word.
+4. **Branding.** Brand architecture (owner, 2026-10-30): **VZ Labs** is the parent technology brand; **Acervus Finance** is its first major software product. Show this in an About section in the PWA and the desktop app. Questions for the owner:
+   - Exact About wording? Suggestion: "Acervus Finance, by VZ Labs" plus the version.
+   - Copyright line: "© 2026 VZ Labs"? Is VZ Labs a registered company (full legal name, such as SRL or LLC, and country)?
+   - Contact for VZ Labs: website and support email to show?
+   - Is there a VZ Labs logo? Where should it appear (About only, sign-in screen, receipt footer)?
+   - Desktop installer: change the Windows "Publisher" to VZ Labs?
+   - Old "VZ Finance" names remain inside the desktop (`vz-finance.exe`, the `VZFinance` data folder). Rename them? Moving the data folder needs a careful migration.
+5. **Terms of Service** for the app (PWA and desktop). Questions for the owner:
+   - Which country's law applies, and is the service for businesses only?
+   - A Privacy Policy as well? It would say where data lives (Convex, Cloudflare, Google Drive backups) and how to delete an account.
+   - Must people accept them at sign-up (a checkbox), or is a link in About enough?
+   - Will a lawyer review the text? A draft from us is a starting point, not legal advice.
 
 ## Waiting on you
 1. Deployment, email and Google sign-in are done.

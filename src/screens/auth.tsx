@@ -91,7 +91,7 @@ function GoogleButton() {
   return (
     <>
       <div className="auth-or">{t("Or continue with", "O continúa con")}</div>
-      <button type="button" className="auth-google" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: `${location.origin}/` })}>
+      <button type="button" className="auth-google" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: `${location.origin}${sessionStorage.getItem(INVITE_KEY) ? "/invite" : "/"}` })}>
         <GoogleMark />
         {t("Continue with Google", "Continuar con Google")}
       </button>
@@ -336,14 +336,57 @@ export function Welcome() {
       title={t("Create your business", "Crea tu negocio")}
       sub={t("You'll be its administrator. You can invite others later.", "Serás su administrador. Luego puedes invitar a otros.")}
     >
+      <PendingInvites />
       <NewBusinessForm />
       <p className="small muted">
-        {t("Were you invited? Open the link from the invitation email.", "¿Te invitaron? Abre el enlace del correo de invitación.")}
+        {t("Were you invited? Sign in with the email address the invitation was sent to, or open the link in the email.", "¿Te invitaron? Inicia sesión con el correo al que llegó la invitación, o abre el enlace del correo.")}
       </p>
       <Button variant="ghost" icon="logout" onClick={() => void app.signOut()}>
         {t("Sign out", "Cerrar sesión")}
       </Button>
     </AuthPanel>
+  );
+}
+
+/** Invitations waiting for the signed-in email, each with Accept; nothing
+ *  when there are none. */
+export function PendingInvites({ className }: { className?: string }) {
+  const t = useT();
+  const app = useApp();
+  const pending = useQuery(api.invites.pending, {});
+  const accept = useMutation(api.invites.acceptPending);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  if (!pending?.length) return null;
+  return (
+    <div className={`stack ${className ?? ""}`}>
+      {pending.map((i) => (
+        <div key={i.inviteId} className="banner row between wrap">
+          <span>
+            {t(`You were invited to ${i.businessName} as ${roleLabel(t, i.role)}.`, `Te invitaron a ${i.businessName} como ${roleLabel(t, i.role)}.`)}
+          </span>
+          <Button
+            variant="primary"
+            loading={busy === i.inviteId}
+            onClick={async () => {
+              setBusy(i.inviteId);
+              setError(null);
+              try {
+                app.setBusinessId(await accept({ inviteId: i.inviteId }));
+                sessionStorage.removeItem(INVITE_KEY);
+              } catch (e) {
+                setError(describeError(t, app.fmt, e));
+              } finally {
+                setBusy(null);
+              }
+            }}
+          >
+            {t("Accept", "Aceptar")}
+          </Button>
+        </div>
+      ))}
+      {error && <div className="banner error">{error}</div>}
+    </div>
   );
 }
 
