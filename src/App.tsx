@@ -1,7 +1,7 @@
 // Routes, the signed-in shell (side rail on wide screens, tab bar and "+"
 // button on phones), the offline/sync banner and the update prompt.
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useT } from "./lib/i18n";
@@ -28,12 +28,15 @@ export function App() {
   if (app.mode === "loading") return <Splash />;
   if (app.mode === "signed_out") {
     return (
-      <Routes>
-        <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/invite" element={<InviteScreen />} />
-        <Route path="*" element={<Navigate to={`/sign-in${location.search}`} replace />} />
-      </Routes>
+      <>
+        <AutoUpdate />
+        <Routes>
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/invite" element={<InviteScreen />} />
+          <Route path="*" element={<Navigate to={`/sign-in${location.search}`} replace />} />
+        </Routes>
+      </>
     );
   }
   if (location.pathname === "/invite") return <InviteScreen />;
@@ -83,7 +86,7 @@ function Splash({ message }: { message?: string }) {
   const app = useApp();
   const t = useT();
   return (
-    <div className="auth">
+    <div className="auth splash">
       <div className="panel stack" style={{ alignItems: "center", textAlign: "center" }}>
         <img className="logo" src="/pwa-192x192.png" alt="" />
         {message ? <p>{message}</p> : <span className="btn ghost" aria-busy="true"><span className="spinner" /> {t("Loading…", "Cargando…")}</span>}
@@ -265,6 +268,19 @@ function StatusBanner({ waiting, review }: { waiting: number; review: number }) 
       )}
     </>
   );
+}
+
+/** Signed out there is nothing to lose, so a new version is applied at
+ *  once; otherwise the sign-in pages would keep showing the old one. */
+function AutoUpdate() {
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({ immediate: true });
+  useEffect(() => {
+    if (needRefresh) void updateServiceWorker(true);
+  }, [needRefresh, updateServiceWorker]);
+  return null;
 }
 
 function UpdatePrompt() {

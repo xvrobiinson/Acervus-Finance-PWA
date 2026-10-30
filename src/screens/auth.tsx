@@ -11,6 +11,7 @@ import { describeError } from "../lib/errors";
 import { useLang, useT } from "../lib/i18n";
 import { CURRENCIES, roleLabel } from "../lib/labels";
 import { useApp } from "../state/app";
+import { Icon, type IconName } from "../ui/icons";
 import { Banner, Button, Field } from "../ui/kit";
 
 const INVITE_KEY = "acervus.inviteToken";
@@ -24,24 +25,44 @@ interface CodeRequest {
 
 type AuthFailure = { status?: number; code?: string; message?: string } | null | undefined;
 
-function AuthPanel({ title, sub, children }: { title: string; sub?: ReactNode; children: ReactNode }) {
+/** The signed-out pages: a sky, the brand in the corner and one floating
+ *  card with an icon tile, a title and the form. */
+function AuthPanel({ title, sub, icon = "login", children }: { title: string; sub?: ReactNode; icon?: IconName; children: ReactNode }) {
   const { lang, setLang } = useLang();
   return (
     <div className="auth">
-      <div className="panel stack">
-        <img className="logo" src="/pwa-192x192.png" alt="Acervus Finance" />
-        <div>
+      <header className="auth-top">
+        <span className="auth-brand">
+          <img src="/pwa-192x192.png" alt="" />
+          Acervus Finance
+        </span>
+        <Button variant="ghost" size="small" onClick={() => setLang(lang === "es" ? "en" : "es")}>
+          {lang === "es" ? "English" : "Español"}
+        </Button>
+      </header>
+      <div className="auth-card stack">
+        <div className="auth-head">
+          <span className="auth-tile">
+            <Icon name={icon} />
+          </span>
           <h1>{title}</h1>
-          {sub && <p className="muted" style={{ margin: 0 }}>{sub}</p>}
+          {sub && <p className="muted">{sub}</p>}
         </div>
         {children}
-        <div className="row" style={{ justifyContent: "center" }}>
-          <Button variant="ghost" size="small" onClick={() => setLang(lang === "es" ? "en" : "es")}>
-            {lang === "es" ? "English" : "Español"}
-          </Button>
-        </div>
       </div>
     </div>
+  );
+}
+
+/** Google's "G", in its own colors as Google's sign-in branding asks. */
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
   );
 }
 
@@ -69,10 +90,11 @@ function GoogleButton() {
   if (!googleEnabled) return null;
   return (
     <>
-      <div className="divider">{t("or", "o")}</div>
-      <Button block onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: `${location.origin}/` })}>
+      <div className="auth-or">{t("Or continue with", "O continúa con")}</div>
+      <button type="button" className="auth-google" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: `${location.origin}/` })}>
+        <GoogleMark />
         {t("Continue with Google", "Continuar con Google")}
-      </Button>
+      </button>
     </>
   );
 }
@@ -83,11 +105,14 @@ export function SignIn() {
   const [request, setRequest] = useState<CodeRequest | null>(null);
   if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
-    <AuthPanel title={t("Sign in", "Iniciar sesión")} sub={t("We'll email you a 6-digit code.", "Te enviaremos un código de 6 dígitos por correo.")}>
+    <AuthPanel
+      title={t("Sign in to Acervus", "Inicia sesión en Acervus")}
+      sub={t("We'll email you a 6-digit code. No password to remember.", "Te enviaremos un código de 6 dígitos. Sin contraseñas que recordar.")}
+    >
       <EmailForm submitLabel={t("Send code", "Enviar código")} onSent={setRequest} />
       <GoogleButton />
-      <p className="small" style={{ textAlign: "center" }}>
-        <Link to="/sign-up">{t("Create an account", "Crear una cuenta")}</Link>
+      <p className="auth-foot">
+        {t("New here?", "¿Eres nuevo?")} <Link to="/sign-up">{t("Create an account", "Crea una cuenta")}</Link>
       </p>
       {app.user === null && localStorage.getItem("acervus.lastUser") && !navigator.onLine && (
         <Button onClick={app.continueOffline}>{t("Continue offline", "Continuar sin conexión")}</Button>
@@ -102,13 +127,29 @@ export function SignUp() {
   const [request, setRequest] = useState<CodeRequest | null>(null);
   if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
-    <AuthPanel title={t("Create an account", "Crear una cuenta")} sub={t("Then create your business or accept an invitation.", "Luego crea tu negocio o acepta una invitación.")}>
+    <AuthPanel
+      icon="userPlus"
+      title={t("Create an account", "Crear una cuenta")}
+      sub={t("Then create your business or accept an invitation.", "Luego crea tu negocio o acepta una invitación.")}
+    >
       <EmailForm name={name.trim()} submitLabel={t("Send code", "Enviar código")} onSent={setRequest}>
-        <Field label={t("Your name", "Tu nombre")}>{(id) => <input id={id} className="input" autoComplete="name" required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />}</Field>
+        <label className="auth-field">
+          <Icon name="users" />
+          <input
+            className="input"
+            autoComplete="name"
+            required
+            maxLength={100}
+            aria-label={t("Your name", "Tu nombre")}
+            placeholder={t("Your name", "Tu nombre")}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
       </EmailForm>
       <GoogleButton />
-      <p className="small" style={{ textAlign: "center" }}>
-        <Link to="/sign-in">{t("I already have an account", "Ya tengo una cuenta")}</Link>
+      <p className="auth-foot">
+        {t("Already have an account?", "¿Ya tienes una cuenta?")} <Link to="/sign-in">{t("Sign in", "Inicia sesión")}</Link>
       </p>
     </AuthPanel>
   );
@@ -133,9 +174,21 @@ function EmailForm({ name, submitLabel, onSent, children }: { name?: string; sub
   return (
     <form className="stack" onSubmit={submit}>
       {children}
-      <Field label={t("Email", "Correo")}>{(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
+      <label className="auth-field">
+        <Icon name="mail" />
+        <input
+          className="input"
+          type="email"
+          autoComplete="email"
+          required
+          aria-label={t("Email", "Correo")}
+          placeholder={t("Email", "Correo")}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </label>
       {error && <div className="banner error" role="alert">{error}</div>}
-      <Button type="submit" variant="primary" block loading={busy}>
+      <Button type="submit" variant="primary" className="auth-submit" block loading={busy}>
         {submitLabel}
       </Button>
     </form>
@@ -166,13 +219,18 @@ function CodeStep({ request, onBack }: { request: CodeRequest; onBack: () => voi
     else setNotice(t("We sent a new code.", "Te enviamos un código nuevo."));
   };
   return (
-    <AuthPanel title={t("Enter your code", "Escribe tu código")} sub={t(`We sent a ${CODE_LENGTH}-digit code to ${request.email}.`, `Enviamos un código de ${CODE_LENGTH} dígitos a ${request.email}.`)}>
+    <AuthPanel
+      icon="key"
+      title={t("Enter your code", "Escribe tu código")}
+      sub={t(`We sent a ${CODE_LENGTH}-digit code to ${request.email}.`, `Enviamos un código de ${CODE_LENGTH} dígitos a ${request.email}.`)}
+    >
       <form className="stack" onSubmit={submit}>
         <Field label={t("Code", "Código")} hint={t("It expires in 10 minutes. Check your spam folder too.", "Vence en 10 minutos. Revisa también el correo no deseado.")}>
           {(id) => (
             <input
               id={id}
-              className="input"
+              className="input auth-code"
+              placeholder={"0".repeat(CODE_LENGTH)}
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern={`[0-9]{${CODE_LENGTH}}`}
@@ -186,7 +244,7 @@ function CodeStep({ request, onBack }: { request: CodeRequest; onBack: () => voi
         </Field>
         {notice && <Banner tone="info" icon="check">{notice}</Banner>}
         {error && <div className="banner error" role="alert">{error}</div>}
-        <Button type="submit" variant="primary" block loading={busy}>
+        <Button type="submit" variant="primary" className="auth-submit" block loading={busy}>
           {t("Continue", "Continuar")}
         </Button>
       </form>
@@ -217,20 +275,20 @@ export function InviteScreen() {
   const [error, setError] = useState<string | null>(null);
   if (!token || preview === null) {
     return (
-      <AuthPanel title={t("Invitation", "Invitación")}>
+      <AuthPanel icon="mail" title={t("Invitation", "Invitación")}>
         <Banner tone="error" icon="alert">{t("This invitation is no longer valid. Ask for a new one.", "Esta invitación ya no es válida. Pide una nueva.")}</Banner>
         <Link to="/" className="btn block">{t("Continue", "Continuar")}</Link>
       </AuthPanel>
     );
   }
-  if (preview === undefined) return <AuthPanel title={t("Invitation", "Invitación")}>{t("Loading…", "Cargando…")}</AuthPanel>;
+  if (preview === undefined) return <AuthPanel icon="mail" title={t("Invitation", "Invitación")}>{t("Loading…", "Cargando…")}</AuthPanel>;
   const sub = t(
     `You were invited to ${preview.businessName} as ${roleLabel(t, preview.role)}, with ${preview.email}.`,
     `Te invitaron a ${preview.businessName} como ${roleLabel(t, preview.role)}, con ${preview.email}.`,
   );
   if (!app.user) {
     return (
-      <AuthPanel title={t("Invitation", "Invitación")} sub={sub}>
+      <AuthPanel icon="mail" title={t("Invitation", "Invitación")} sub={sub}>
         <p className="small muted">{t("Sign in or create an account with that email address to accept.", "Inicia sesión o crea una cuenta con ese correo para aceptar.")}</p>
         <Link to="/sign-up" className="btn primary block">{t("Create an account", "Crear una cuenta")}</Link>
         <Link to="/sign-in" className="btn block">{t("Sign in", "Iniciar sesión")}</Link>
@@ -238,7 +296,7 @@ export function InviteScreen() {
     );
   }
   return (
-    <AuthPanel title={t("Invitation", "Invitación")} sub={sub}>
+    <AuthPanel icon="mail" title={t("Invitation", "Invitación")} sub={sub}>
       {error && <div className="banner error">{error}</div>}
       <Button
         variant="primary"
@@ -282,6 +340,7 @@ export function Welcome() {
   const zones = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [timezone];
   return (
     <AuthPanel
+      icon="briefcase"
       title={t("Create your business", "Crea tu negocio")}
       sub={t("You'll be its administrator. You can invite others later.", "Serás su administrador. Luego puedes invitar a otros.")}
     >

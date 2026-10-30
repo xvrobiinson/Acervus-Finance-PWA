@@ -45,6 +45,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --spring: cubic-bezier(0.2, 0.9, 0.3, 1.05);
+  /* The signed-out pages: a daytime sky behind a glass card. */
+  --sky-top: #9fc9f1; --sky-mid: #cfe4f8; --sky-low: #f1f6fc; --cloud: rgba(255, 255, 255, 0.95); --arc: rgba(255, 255, 255, 0.6);
+  --glass: rgba(255, 255, 255, 0.84); --glass-top: #dcf2fb; --glass-edge: rgba(255, 255, 255, 0.95);
   color-scheme: light;
 }
 
@@ -57,6 +60,8 @@
     --negative: #f07077; --negative-tint: #33191b; --neutral-tint: #23252a; --grid: #24262b; --overlay: rgba(0, 0, 0, 0.5);
     --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 8px 24px -6px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.045);
     --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 20px -4px rgba(0, 0, 0, 0.48), 0 24px 56px -12px rgba(0, 0, 0, 0.8);
+    --sky-top: #091226; --sky-mid: #0f182c; --sky-low: #0e0f11; --cloud: rgba(110, 135, 200, 0.10); --arc: rgba(140, 165, 230, 0.13);
+    --glass: rgba(23, 24, 27, 0.86); --glass-top: #19223c; --glass-edge: rgba(255, 255, 255, 0.07);
     color-scheme: dark;
   }
 }
@@ -68,6 +73,8 @@
   --negative: #f07077; --negative-tint: #33191b; --neutral-tint: #23252a; --grid: #24262b; --overlay: rgba(0, 0, 0, 0.5);
   --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 8px 24px -6px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.045);
   --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 20px -4px rgba(0, 0, 0, 0.48), 0 24px 56px -12px rgba(0, 0, 0, 0.8);
+  --sky-top: #091226; --sky-mid: #0f182c; --sky-low: #0e0f11; --cloud: rgba(110, 135, 200, 0.10); --arc: rgba(140, 165, 230, 0.13);
+  --glass: rgba(23, 24, 27, 0.86); --glass-top: #19223c; --glass-edge: rgba(255, 255, 255, 0.07);
   color-scheme: dark;
 }
 
@@ -312,12 +319,73 @@ textarea.input { min-height: 88px; resize: vertical; }
 .toast.error { background: var(--negative); color: #fff; }
 
 /* ----- auth ----------------------------------------------------------- */
-.auth { min-height: 100dvh; display: grid; place-items: center; padding: calc(var(--safe-top) + 24px) 16px calc(var(--safe-bottom) + 24px); }
+/* A sky with soft clouds along the bottom and two faint arcs behind one
+   glass card. Everything is drawn with gradients (no images), so it works
+   offline and follows the theme. */
+.auth {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; justify-items: center;
+  padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 32px);
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-low) 100%);
+}
+.auth::before { /* the arcs */
+  content: ""; position: absolute; z-index: -1; left: 50%; top: 58%; width: 1500px; height: 1500px; transform: translate(-50%, -50%);
+  border-radius: 50%; border: 1px solid var(--arc); box-shadow: 0 0 0 210px transparent, 0 0 0 211px var(--arc);
+  -webkit-mask: linear-gradient(180deg, transparent 18%, #000 40%, #000 55%, transparent 75%);
+  mask: linear-gradient(180deg, transparent 18%, #000 40%, #000 55%, transparent 75%);
+}
+.auth::after { /* the clouds */
+  content: ""; position: absolute; z-index: -1; left: -10%; right: -10%; bottom: -6%; height: 46%; filter: blur(18px);
+  background:
+    radial-gradient(30% 55% at 8% 70%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(26% 50% at 30% 92%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(34% 60% at 55% 100%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(28% 55% at 80% 78%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(30% 45% at 98% 95%, var(--cloud) 0 45%, transparent 72%);
+}
+.auth.splash { grid-template-rows: 1fr; align-items: center; }
 .auth .panel { width: 100%; max-width: 400px; }
-.auth .logo { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 16px; }
-.auth h1 { font-size: 24px; line-height: 30px; margin-bottom: 4px; }
-.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
-.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.auth .logo { width: 56px; height: 56px; border-radius: 14px; }
+.auth-top { width: 100%; max-width: 1120px; display: flex; align-items: center; justify-content: space-between; }
+.auth-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; color: var(--ink); }
+.auth-brand img { width: 30px; height: 30px; border-radius: 8px; }
+.auth-top .btn.ghost:hover { background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.auth-card {
+  align-self: center; width: 100%; max-width: 380px; margin: 32px 0; padding: 32px 28px 28px; gap: 14px;
+  border-radius: 22px; border: 1px solid var(--glass-edge);
+  background: linear-gradient(180deg, var(--glass-top) 0%, var(--glass) 38%);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-floating);
+  animation: rise 420ms var(--spring);
+}
+.auth-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; margin-bottom: 8px; }
+.auth-head h1 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.auth-head p { margin: 0; font-size: 14px; line-height: 20px; max-width: 290px; }
+.auth-tile {
+  display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 10px; border-radius: 14px;
+  background: var(--surface); color: var(--ink); box-shadow: var(--shadow-raised), 0 0 0 1px var(--glass-edge);
+}
+.auth-tile svg { width: 22px; height: 22px; }
+.auth-field { position: relative; display: block; }
+.auth-field svg { position: absolute; left: 14px; top: 50%; width: 17px; height: 17px; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
+.auth-field .input, .auth-code { background: var(--neutral-tint); border-color: transparent; }
+.auth-field .input { padding-left: 42px; }
+.auth-field .input:focus, .auth-code:focus { background: var(--surface); }
+.auth-code { text-align: center; font-size: 22px; letter-spacing: 0.4em; font-variant-numeric: tabular-nums; font-weight: 600; }
+.btn.primary.auth-submit { background: var(--ink); color: var(--surface); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 6px 14px -6px rgba(10, 12, 20, 0.5); }
+.btn.primary.auth-submit:hover { background: color-mix(in srgb, var(--ink) 86%, var(--surface)); }
+.auth-or { display: flex; align-items: center; gap: 12px; margin: 4px 0; color: var(--faint); font-size: 12px; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 2px; background: radial-gradient(circle, var(--control) 1px, transparent 1.5px) 0 0 / 6px 2px repeat-x; }
+.auth-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; padding: 0 16px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--ink);
+  font: inherit; font-weight: 500; box-shadow: var(--shadow-raised); transition: background 160ms var(--spring), transform 160ms var(--spring);
+}
+.auth-google:hover { background: var(--hover); }
+.auth-google:active { transform: translateY(1px); }
+.auth-google svg { width: 18px; height: 18px; }
+.auth-foot { margin: 4px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .auth-card { animation: none; } }
 
 /* ----- chart ---------------------------------------------------------- */
 .chart svg { display: block; width: 100%; height: 180px; }
