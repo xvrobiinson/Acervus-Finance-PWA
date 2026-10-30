@@ -329,6 +329,28 @@ export function InviteScreen() {
 /** A signed-in person with no business yet: create one. */
 export function Welcome() {
   const t = useT();
+  const app = useApp();
+  return (
+    <AuthPanel
+      icon="briefcase"
+      title={t("Create your business", "Crea tu negocio")}
+      sub={t("You'll be its administrator. You can invite others later.", "Serás su administrador. Luego puedes invitar a otros.")}
+    >
+      <NewBusinessForm />
+      <p className="small muted">
+        {t("Were you invited? Open the link from the invitation email.", "¿Te invitaron? Abre el enlace del correo de invitación.")}
+      </p>
+      <Button variant="ghost" icon="logout" onClick={() => void app.signOut()}>
+        {t("Sign out", "Cerrar sesión")}
+      </Button>
+    </AuthPanel>
+  );
+}
+
+/** Name, currency and time zone for a new business; the creator becomes its
+ *  admin and the app opens it. Used on the welcome screen and in Settings. */
+export function NewBusinessForm({ onCreated }: { onCreated?: () => void }) {
+  const t = useT();
   const { lang } = useLang();
   const app = useApp();
   const create = useMutation(api.businesses.create);
@@ -339,61 +361,50 @@ export function Welcome() {
   const [error, setError] = useState<string | null>(null);
   const zones = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [timezone];
   return (
-    <AuthPanel
-      icon="briefcase"
-      title={t("Create your business", "Crea tu negocio")}
-      sub={t("You'll be its administrator. You can invite others later.", "Serás su administrador. Luego puedes invitar a otros.")}
+    <form
+      className="stack"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError(null);
+        try {
+          const id = await create({ name, timezone, language: lang, currencyCode: currency });
+          app.setBusinessId(id as Id<"businesses">);
+          onCreated?.();
+        } catch (err) {
+          setError(describeError(t, app.fmt, err));
+        } finally {
+          setBusy(false);
+        }
+      }}
     >
-      <form
-        className="stack"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          setError(null);
-          try {
-            const id = await create({ name, timezone, language: lang, currencyCode: currency });
-            app.setBusinessId(id as Id<"businesses">);
-          } catch (err) {
-            setError(describeError(t, app.fmt, err));
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <Field label={t("Business name", "Nombre del negocio")}>{(id) => <input id={id} className="input" required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />}</Field>
-        <Field label={t("Currency", "Moneda")} hint={t("Only the symbol; amounts are never converted.", "Solo el símbolo; los montos no se convierten.")}>
-          {(id) => (
-            <select id={id} className="input" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.symbol} · {t(c.en, c.es)}
-                </option>
-              ))}
-            </select>
-          )}
-        </Field>
-        <Field label={t("Time zone", "Zona horaria")} hint={t("Due dates and late fees follow the date here.", "Los vencimientos y la mora siguen la fecha de esta zona.")}>
-          {(id) => (
-            <select id={id} className="input" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
-              {zones.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
-              ))}
-            </select>
-          )}
-        </Field>
-        {error && <div className="banner error">{error}</div>}
-        <Button type="submit" variant="primary" block loading={busy}>
-          {t("Create business", "Crear negocio")}
-        </Button>
-      </form>
-      <p className="small muted">
-        {t("Were you invited? Open the link from the invitation email.", "¿Te invitaron? Abre el enlace del correo de invitación.")}
-      </p>
-      <Button variant="ghost" icon="logout" onClick={() => void app.signOut()}>
-        {t("Sign out", "Cerrar sesión")}
+      <Field label={t("Business name", "Nombre del negocio")}>{(id) => <input id={id} className="input" required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />}</Field>
+      <Field label={t("Currency", "Moneda")} hint={t("Only the symbol; amounts are never converted.", "Solo el símbolo; los montos no se convierten.")}>
+        {(id) => (
+          <select id={id} className="input" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.symbol} · {t(c.en, c.es)}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
+      <Field label={t("Time zone", "Zona horaria")} hint={t("Due dates and late fees follow the date here.", "Los vencimientos y la mora siguen la fecha de esta zona.")}>
+        {(id) => (
+          <select id={id} className="input" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+            {zones.map((z) => (
+              <option key={z} value={z}>
+                {z}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
+      {error && <div className="banner error">{error}</div>}
+      <Button type="submit" variant="primary" block loading={busy}>
+        {t("Create business", "Crear negocio")}
       </Button>
-    </AuthPanel>
+    </form>
   );
 }

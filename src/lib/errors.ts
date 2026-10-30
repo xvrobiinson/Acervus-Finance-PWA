@@ -156,6 +156,8 @@ function invalidText(t: T, d: ErrorData): string {
       return t("The date is before the latest payment", "La fecha es anterior al último pago");
     case "photo":
       return t("Use a JPEG, PNG or WebP picture under 4 MB", "Usa una foto JPEG, PNG o WebP de menos de 4 MB");
+    case "confirm_name":
+      return t("Type the business name exactly as shown", "Escribe el nombre del negocio tal como aparece");
     case "logo":
       return t("Use a PNG, JPEG or WebP picture under 1 MB", "Usa una imagen PNG, JPEG o WebP de menos de 1 MB");
     default:

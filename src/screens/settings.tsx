@@ -15,7 +15,8 @@ import { useLang, useT } from "../lib/i18n";
 import { CURRENCIES, frequencyLabel, roleLabel } from "../lib/labels";
 import { defaultRules, tagList, whenHint, withRules, withText, Wording, wordingProblem, type RuleLine, type RuleSet, type When } from "../receipts/wording";
 import { useBooks } from "../state/app";
-import { Banner, Button, Card, Check, Confirm, Field, Pill, Segmented, useToast } from "../ui/kit";
+import { Banner, Button, Card, Check, Confirm, Field, Pill, Row, Segmented, Sheet, useToast } from "../ui/kit";
+import { NewBusinessForm } from "./auth";
 import { RateInput, useParseError, useRate } from "../ui/inputs";
 
 export function SettingsScreen() {
@@ -29,6 +30,7 @@ export function SettingsScreen() {
         <h1>{t("Settings", "Ajustes")}</h1>
       </div>
       <DeviceCard />
+      <BusinessesCard />
       {admin && mode === "online" && (
         <>
           <BusinessCard />
@@ -77,19 +79,6 @@ function DeviceCard() {
             />
           )}
         </Field>
-        {(app.businesses?.length ?? 0) > 1 && (
-          <Field label={t("Business", "Negocio")}>
-            {(id) => (
-              <select id={id} className="input" value={app.businessId} onChange={(e) => app.setBusinessId(e.target.value as Id<"businesses">)}>
-                {app.businesses!.map((b) => (
-                  <option key={b.businessId} value={b.businessId}>
-                    {b.name} · {roleLabel(t, b.role)}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
-        )}
         <div className="span2 row between wrap">
           <span className="small muted">
             {app.user?.email} · {app.role ? roleLabel(t, app.role) : ""}
@@ -108,6 +97,98 @@ function DeviceCard() {
         </Confirm>
       )}
     </Card>
+  );
+}
+
+/** Every business the person belongs to: open one, start a new one, and
+ *  (admins) delete one for everyone. */
+function BusinessesCard() {
+  const t = useT();
+  const app = useBooks();
+  const online = app.mode === "online";
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<{ businessId: Id<"businesses">; name: string } | null>(null);
+  return (
+    <Card
+      title={t("Businesses", "Negocios")}
+      className="section"
+      action={
+        online && (
+          <Button icon="plus" onClick={() => setCreating(true)}>
+            {t("New business", "Nuevo negocio")}
+          </Button>
+        )
+      }
+    >
+      <ul className="list">
+        {(app.businesses ?? []).map((b) => {
+          const open = b.businessId === app.businessId;
+          return (
+            <Row
+              key={b.businessId}
+              title={b.name}
+              sub={roleLabel(t, b.role)}
+              trail={
+                <div className="row">
+                  {open ? (
+                    <Pill tone="accent">{t("Open", "Abierto")}</Pill>
+                  ) : (
+                    <Button onClick={() => app.setBusinessId(b.businessId as Id<"businesses">)}>{t("Open", "Abrir")}</Button>
+                  )}
+                  {b.role === "admin" && online && (
+                    <Button variant="ghost" icon="trash" aria-label={t("Delete business", "Eliminar negocio")} onClick={() => setDeleting({ businessId: b.businessId as Id<"businesses">, name: b.name })} />
+                  )}
+                </div>
+              }
+            />
+          );
+        })}
+      </ul>
+      {creating && (
+        <Sheet title={t("New business", "Nuevo negocio")} onClose={() => setCreating(false)}>
+          <NewBusinessForm onCreated={() => setCreating(false)} />
+        </Sheet>
+      )}
+      {deleting && <DeleteBusiness {...deleting} onClose={() => setDeleting(null)} />}
+    </Card>
+  );
+}
+
+/** Deleting a business for everyone, once its name is typed. */
+function DeleteBusiness({ businessId, name, onClose }: { businessId: Id<"businesses">; name: string; onClose: () => void }) {
+  const t = useT();
+  const app = useBooks();
+  const toast = useToast();
+  const remove = useMutation(api.businesses.remove);
+  const [typed, setTyped] = useState("");
+  return (
+    <Confirm
+      title={t("Delete this business?", "¿Eliminar este negocio?")}
+      confirmLabel={t("Delete for everyone", "Eliminar para todos")}
+      danger
+      onClose={onClose}
+      onConfirm={async () => {
+        if (typed.trim() !== name) throw new Error(t("Type the name exactly as shown.", "Escribe el nombre tal como aparece."));
+        try {
+          await remove({ businessId, name: typed });
+        } catch (e) {
+          throw new Error(describeError(t, app.fmt, e));
+        }
+        toast(t("Business deleted", "Negocio eliminado"));
+      }}
+    >
+      <div className="stack">
+        <p>
+          {t(
+            `All of ${name}'s clients, loans, payments, money records, photos and members are deleted for everyone, on every device. This can't be undone.`,
+            `Se eliminan para todos y en todos los dispositivos los clientes, préstamos, pagos, movimientos de dinero, fotos y miembros de ${name}. No se puede deshacer.`,
+          )}
+        </p>
+        <Field label={t(`Type “${name}” to confirm`, `Escribe “${name}” para confirmar`)}>
+          {(id) => <input id={id} className="input" autoComplete="off" value={typed} onChange={(e) => setTyped(e.target.value)} />}
+        </Field>
+      </div>
+    </Confirm>
   );
 }
 

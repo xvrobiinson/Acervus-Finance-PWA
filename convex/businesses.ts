@@ -5,7 +5,8 @@
 import { v } from "convex/values";
 import { isValidTimeZone, todayIn } from "../shared/domain/dates";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { requireIdentity, requireMember, type Access, type Identity } from "./lib/access";
 import { Diff, logChange } from "./lib/books";
 import { fail } from "./lib/errors";
@@ -127,6 +128,66 @@ export const update = mutation({
     if (d.empty) return;
     await ctx.db.patch(a.businessId, { name, timezone: a.timezone });
     await logChange(ctx, access, "settings", a.businessId, "update", d, "");
+  },
+});
+
+/** Deletes a business for everyone: admins only, and only when `name` is
+ *  the business's name exactly, so it can't happen by accident. The
+ *  business disappears at once; its records and files are removed in the
+ *  background (`purge`). */
+export const remove = mutation({
+  args: { businessId: v.id("businesses"), name: v.string() },
+  handler: async (ctx, a) => {
+    const access = await requireMember(ctx, a.businessId, "manage");
+    if (a.name.trim() !== access.business.name) fail("invalid", { field: "name", reason: "confirm_name" });
+    await ctx.db.delete(a.businessId);
+    await ctx.scheduler.runAfter(0, internal.businesses.purge, { businessId: a.businessId });
+  },
+});
+
+/** Every table that holds a business's records. */
+const BUSINESS_TABLES = [
+  "members",
+  "invites",
+  "settings",
+  "clients",
+  "loans",
+  "loanStatusEvents",
+  "payments",
+  "lateFees",
+  "capitalTxs",
+  "cashEntries",
+  "changeLog",
+] as const;
+const PURGE_BATCH = 500;
+
+/** Removes a deleted business's records and files, a batch at a time. */
+export const purge = internalMutation({
+  args: { businessId: v.id("businesses") },
+  handler: async (ctx, a) => {
+    let left = PURGE_BATCH;
+    for (const table of BUSINESS_TABLES) {
+      const rows = await ctx.db
+        .query(table)
+        .withIndex("by_business", (q) => q.eq("businessId", a.businessId))
+        .take(left);
+      for (const row of rows) {
+        const file = "photoId" in row ? row.photoId : "logoId" in row ? row.logoId : undefined;
+        if (file) await ctx.storage.delete(file);
+        await ctx.db.delete(row._id);
+      }
+      left -= rows.length;
+      if (left === 0) break;
+    }
+    if (left > 0) {
+      const ops = await ctx.db
+        .query("operations")
+        .withIndex("by_op", (q) => q.eq("businessId", a.businessId))
+        .take(left);
+      for (const op of ops) await ctx.db.delete(op._id);
+      left -= ops.length;
+    }
+    if (left === 0) await ctx.scheduler.runAfter(0, internal.businesses.purge, a);
   },
 });
 
