@@ -1,13 +1,13 @@
-# Acervus Finance PWA: status (2026-10-28)
+# Acervus Finance PWA: status (2026-10-30)
 
 ## Decisions confirmed by the owner
 - Several separate businesses with self-service sign-up; whoever creates a business is its admin.
 - Roles: Admin, Collector and Viewer (`convex/lib/access.ts`).
-- Passwordless email codes (Resend; until it is connected the code is written to the Convex logs), plus optional Google. Changed from email and password on 2026-10-28.
+- Passwordless email codes (sent through Brevo), plus Continue with Google (working since 2026-10-29). Changed from email and password on 2026-10-28.
 - Offline: create clients, payments, expenses and income. Everything else needs a connection.
 - ID photos: Convex storage, admins only, never cached, exported or printed.
-- Desktop: two-way live sync with the PWA, chosen 2026-10-28 (`DESKTOP-SYNC-PLAN.md`). Not started; each phase needs approval.
-- The owner has Convex and Cloudflare accounts. Code is in the private GitHub repo `xvrobiinson/Acervus-Finance-PWA` (approved 2026-10-28). **Nothing is deployed yet.**
+- Desktop: two-way live sync with the PWA, chosen 2026-10-28 (`DESKTOP-SYNC-PLAN.md`). Phases 0–3 done, phase 4 under way (desktop 0.7.0, not released); each phase needs approval.
+- Live at https://acervus-finance-pwa.vz-labs.workers.dev (Convex production `proper-pony-55`), deployed by GitHub Actions on every push to `main`. Code is in the private GitHub repo `xvrobiinson/Acervus-Finance-PWA`.
 
 ## Implemented
 - **Engine** (`shared/domain`): port of the desktop engine and services logic.
@@ -62,12 +62,12 @@ Problems found and fixed while testing:
 
 ## Limitations
 - Each mutation reads the business's whole ledger, which is fine for small and medium lenders. Very large books would need cached per-loan summaries (Convex transaction read limits).
-- Not tested on real Android or iPhone hardware or the production Convex cloud. The Google sign-in round trip and real email delivery (Resend) are untested; they need your accounts. The per-IP rate limit depends on what Convex cloud forwards; per-account limits always apply.
+- Not tested on real Android or iPhone hardware by us; the owner uses it live. The per-IP rate limit depends on what Convex cloud forwards; per-account limits always apply.
 - The session token lives in localStorage (the cross-domain plugin's design), mitigated by the CSP.
 - Offline: no new loans or edits; receipts only after sync; queued payments aren't counted in figures until accepted; the app must be opened online once per device. iOS needs the app installed to keep offline data reliably.
 - Desktop-only features with no PWA equivalent: SQLite backup/restore files (replaced by Convex backups and CSV/JSON export), the Windows file picker, keyboard shortcuts, Diagnostics.
 - The receipt page-count note uses the desktop's row measurements (US Letter in Edge). Other browsers may break pages slightly differently.
 
 ## Waiting on you
-1. Follow `DEPLOYMENT.md` parts 1 to 6: Convex project, Cloudflare token, production variables, GitHub secrets, first deploy.
-2. Later: Resend domain (until then sign-in codes are in the Convex logs), Google OAuth client, custom domain.
+1. Deployment, email and Google sign-in are done.
+2. Later: a custom domain (optional).
