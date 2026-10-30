@@ -69,8 +69,9 @@ export function App() {
           <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/loans" element={<LoansScreen />} />
           <Route path="/loans/:id" element={<LoanDetail />} />
-          <Route path="/money" element={<MoneyScreen />} />
-          <Route path="/reports" element={<ReportsScreen />} />
+          {/* The business's balances and returns: admins only. */}
+          <Route path="/money" element={app.can("manage") ? <MoneyScreen /> : <Navigate to="/" replace />} />
+          <Route path="/reports" element={app.can("manage") ? <ReportsScreen /> : <Navigate to="/" replace />} />
           <Route path="/history" element={<HistoryScreen />} />
           <Route path="/settings" element={<SettingsScreen />} />
           <Route path="/sync" element={<SyncScreen />} />
@@ -138,7 +139,7 @@ function Shell({ children }: { children: ReactNode }) {
     ["/", "home", t("Overview", "Resumen")],
     ["/clients", "users", t("Clients", "Clientes")],
     ["/loans", "loans", t("Loans", "Préstamos")],
-    ["/money", "wallet", t("Money", "Dinero")],
+    ...(app.can("manage") ? [["/money", "wallet", t("Money", "Dinero")] as [string, IconName, string]] : []),
   ];
   const quickItems: [string, IconName, () => void, boolean][] = [
     [t("Record payment", "Registrar pago"), "receipt", () => open({ kind: "payment" }), app.can("record")],
@@ -160,10 +161,12 @@ function Shell({ children }: { children: ReactNode }) {
             {label}
           </NavLink>
         ))}
-        <NavLink to="/reports">
-          <Icon name="chart" />
-          {t("Reports", "Reportes")}
-        </NavLink>
+        {app.can("manage") && (
+          <NavLink to="/reports">
+            <Icon name="chart" />
+            {t("Reports", "Reportes")}
+          </NavLink>
+        )}
         <NavLink to="/history">
           <Icon name="history" />
           {t("History", "Historial")}

@@ -8,10 +8,10 @@ import { Card, Pill, Row } from "../ui/kit";
 
 export function MoreScreen() {
   const t = useT();
-  const { ops, user, role, snapshot } = useBooks();
+  const { ops, user, role, snapshot, can } = useBooks();
   const pending = ops.filter((o) => o.status !== "synced").length;
   const items: [string, IconName, string, number?][] = [
-    ["/reports", "chart", t("Reports", "Reportes")],
+    ...(can("manage") ? [["/reports", "chart", t("Reports", "Reportes")] as [string, IconName, string]] : []),
     ["/history", "history", t("History", "Historial")],
     ["/sync", "sync", t("Sync", "Sincronización"), pending],
     ["/settings", "settings", t("Settings", "Ajustes")],

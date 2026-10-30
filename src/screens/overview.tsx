@@ -17,6 +17,7 @@ export function OverviewScreen() {
   const t = useT();
   const { books, fmt, snapshot, today, can } = useBooks();
   const open = useForms();
+  const admin = can("manage");
   const s = books.summary;
   const [range, setRange] = useState<"3" | "6" | "12" | "all">("6");
   const points = useMemo(() => {
@@ -39,67 +40,87 @@ export function OverviewScreen() {
         )}
       </div>
       <Card>
-        <div className="stats">
-          <Stat
-            lead
-            label={t("Portfolio value", "Valor del portafolio")}
-            value={fmt.money(s.portfolioValue)}
-            caption={
-              <span className={gain(s) >= 0 ? "pos" : "neg"}>
-                {fmt.signed(gain(s))} {ret ? `(${ret})` : ""} · {t("on capital invested", "sobre capital invertido")}
-              </span>
-            }
-          />
-          <Stat label={t("Available capital", "Capital disponible")} value={fmt.money(s.availableCapital)} />
-          <Stat label={t("Available interest", "Interés disponible")} value={fmt.money(s.availableInterest)} />
-          <Stat label={t("Capital lent out", "Capital prestado")} value={fmt.money(s.outstandingPrincipal)} caption={t(`${s.activeLoans} active loans`, `${s.activeLoans} préstamos activos`)} />
-          <Stat label={t("Interest earned", "Interés cobrado")} value={fmt.money(realizedIncome(s))} caption={t(`${fmt.money(s.expectedMonthlyInterest)} expected a month`, `${fmt.money(s.expectedMonthlyInterest)} esperados al mes`)} />
-          <Stat
-            label={t("Overdue", "Atrasado")}
-            value={fmt.money(s.overdueAmount)}
-            tone={s.overdueAmount > 0 ? "neg" : undefined}
-            caption={t(`${s.overdueLoans} loans · ${s.dueSoonLoans} due soon`, `${s.overdueLoans} préstamos · ${s.dueSoonLoans} vencen pronto`)}
-          />
-          <Stat
-            label={t("Receivable", "Por cobrar")}
-            value={fmt.money(s.interestReceivable + s.feesReceivable)}
-            caption={t("Interest and late fees due, unpaid", "Interés y mora vencidos sin pagar")}
-          />
-        </div>
+        {/* The business's totals are for admins; collectors and viewers see their work. */}
+        {!admin ? (
+          <div className="stats">
+            <Stat lead label={t("Active loans", "Préstamos activos")} value={String(s.activeLoans)} caption={t(`${s.dueSoonLoans} due soon`, `${s.dueSoonLoans} vencen pronto`)} />
+            <Stat
+              label={t("Overdue", "Atrasado")}
+              value={fmt.money(s.overdueAmount)}
+              tone={s.overdueAmount > 0 ? "neg" : undefined}
+              caption={t(`${s.overdueLoans} loans`, `${s.overdueLoans} préstamos`)}
+            />
+            <Stat
+              label={t("Receivable", "Por cobrar")}
+              value={fmt.money(s.interestReceivable + s.feesReceivable)}
+              caption={t("Interest and late fees due, unpaid", "Interés y mora vencidos sin pagar")}
+            />
+          </div>
+        ) : (
+          <div className="stats">
+            <Stat
+              lead
+              label={t("Portfolio value", "Valor del portafolio")}
+              value={fmt.money(s.portfolioValue)}
+              caption={
+                <span className={gain(s) >= 0 ? "pos" : "neg"}>
+                  {fmt.signed(gain(s))} {ret ? `(${ret})` : ""} · {t("on capital invested", "sobre capital invertido")}
+                </span>
+              }
+            />
+            <Stat label={t("Available capital", "Capital disponible")} value={fmt.money(s.availableCapital)} />
+            <Stat label={t("Available interest", "Interés disponible")} value={fmt.money(s.availableInterest)} />
+            <Stat label={t("Capital lent out", "Capital prestado")} value={fmt.money(s.outstandingPrincipal)} caption={t(`${s.activeLoans} active loans`, `${s.activeLoans} préstamos activos`)} />
+            <Stat label={t("Interest earned", "Interés cobrado")} value={fmt.money(realizedIncome(s))} caption={t(`${fmt.money(s.expectedMonthlyInterest)} expected a month`, `${fmt.money(s.expectedMonthlyInterest)} esperados al mes`)} />
+            <Stat
+              label={t("Overdue", "Atrasado")}
+              value={fmt.money(s.overdueAmount)}
+              tone={s.overdueAmount > 0 ? "neg" : undefined}
+              caption={t(`${s.overdueLoans} loans · ${s.dueSoonLoans} due soon`, `${s.overdueLoans} préstamos · ${s.dueSoonLoans} vencen pronto`)}
+            />
+            <Stat
+              label={t("Receivable", "Por cobrar")}
+              value={fmt.money(s.interestReceivable + s.feesReceivable)}
+              caption={t("Interest and late fees due, unpaid", "Interés y mora vencidos sin pagar")}
+            />
+          </div>
+        )}
       </Card>
 
-      <div className="grid2" style={{ marginTop: 16 }}>
-        <Card
-          title={t("Growth", "Crecimiento")}
-          action={
-            <div style={{ width: 200 }}>
-              <Segmented
-                label={t("Range", "Rango")}
-                value={range}
-                onChange={setRange}
-                options={[
-                  ["3", "3M"],
-                  ["6", "6M"],
-                  ["12", t("1Y", "1A")],
-                  ["all", t("All", "Todo")],
-                ]}
-              />
+      <div className={admin ? "grid2" : undefined} style={{ marginTop: 16 }}>
+        {admin && (
+          <Card
+            title={t("Growth", "Crecimiento")}
+            action={
+              <div style={{ width: 200 }}>
+                <Segmented
+                  label={t("Range", "Rango")}
+                  value={range}
+                  onChange={setRange}
+                  options={[
+                    ["3", "3M"],
+                    ["6", "6M"],
+                    ["12", t("1Y", "1A")],
+                    ["all", t("All", "Todo")],
+                  ]}
+                />
+              </div>
+            }
+          >
+            <div className="card-body">
+              {points.length > 1 ? (
+                <>
+                  <GrowthChart points={points} fmt={fmt} label={t("Portfolio value over time", "Valor del portafolio en el tiempo")} />
+                  <p className="micro muted">
+                    {t("Solid: portfolio value. Dashed: capital invested.", "Línea continua: valor del portafolio. Discontinua: capital invertido.")}
+                  </p>
+                </>
+              ) : (
+                <Empty icon="chart">{t("The chart appears once there is activity on more than one day.", "El gráfico aparece cuando hay actividad en más de un día.")}</Empty>
+              )}
             </div>
-          }
-        >
-          <div className="card-body">
-            {points.length > 1 ? (
-              <>
-                <GrowthChart points={points} fmt={fmt} label={t("Portfolio value over time", "Valor del portafolio en el tiempo")} />
-                <p className="micro muted">
-                  {t("Solid: portfolio value. Dashed: capital invested.", "Línea continua: valor del portafolio. Discontinua: capital invertido.")}
-                </p>
-              </>
-            ) : (
-              <Empty icon="chart">{t("The chart appears once there is activity on more than one day.", "El gráfico aparece cuando hay actividad en más de un día.")}</Empty>
-            )}
-          </div>
-        </Card>
+          </Card>
+        )}
         <Card title={t("Needs attention", "Requiere atención")} action={<LinkButton to="/loans" size="small" variant="ghost">{t("All loans", "Préstamos")}</LinkButton>}>
           {attention.length === 0 ? (
             <Empty icon="check">{t("Nothing overdue or due in the next 5 days.", "Nada atrasado ni por vencer en los próximos 5 días.")}</Empty>
@@ -131,7 +152,7 @@ export function OverviewScreen() {
         </Card>
       </div>
 
-      <Card title={t("Recent payments", "Pagos recientes")} className="section" action={<LinkButton to="/money" size="small" variant="ghost">{t("Money", "Dinero")}</LinkButton>}>
+      <Card title={t("Recent payments", "Pagos recientes")} className="section" action={admin && <LinkButton to="/money" size="small" variant="ghost">{t("Money", "Dinero")}</LinkButton>}>
         {recent.length === 0 ? (
           <Empty icon="receipt">{t("No payments yet.", "Aún no hay pagos.")}</Empty>
         ) : (
