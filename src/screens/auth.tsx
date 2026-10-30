@@ -11,7 +11,7 @@ import { describeError } from "../lib/errors";
 import { useLang, useT } from "../lib/i18n";
 import { CURRENCIES, roleLabel } from "../lib/labels";
 import { useApp } from "../state/app";
-import { Icon } from "../ui/icons";
+import { Icon, type IconName } from "../ui/icons";
 import { Banner, Button, Field } from "../ui/kit";
 
 const INVITE_KEY = "acervus.inviteToken";
@@ -25,82 +25,32 @@ interface CodeRequest {
 
 type AuthFailure = { status?: number; code?: string; message?: string } | null | undefined;
 
-/** The signed-out pages: one large frame on a soft backdrop. On wide
- *  screens a dark showcase panel sits on the left (headline, rings and a
- *  drawn phone with the app's weekly collections); the light panel on the
- *  right holds the brand, the form and a footer. Phones get the light panel
- *  only. */
-function AuthPanel({ title, sub, corner, children }: { title: string; sub?: ReactNode; corner?: ReactNode; children: ReactNode }) {
-  const t = useT();
+/** The signed-out pages: a sky, the brand in the corner and one floating
+ *  card with an icon tile, a title and the form. */
+function AuthPanel({ title, sub, icon = "login", children }: { title: string; sub?: ReactNode; icon?: IconName; children: ReactNode }) {
   const { lang, setLang } = useLang();
   return (
     <div className="auth">
-      <div className="auth-frame">
-        <Showcase />
-        <section className="auth-panel">
-          <header className="auth-top">
-            <span className="auth-brand">
-              <img src="/pwa-192x192.png" alt="" />
-              Acervus Finance
-            </span>
-            {corner}
-          </header>
-          <div className="auth-body stack">
-            <div className="auth-head">
-              <h1>{title}</h1>
-              {sub && <p className="muted">{sub}</p>}
-            </div>
-            {children}
-          </div>
-          <footer className="auth-bottom">
-            <span>© {new Date().getFullYear()} Acervus Finance</span>
-            <button type="button" className="auth-lang" onClick={() => setLang(lang === "es" ? "en" : "es")} aria-label={t("Change language", "Cambiar idioma")}>
-              <Icon name="globe" />
-              {lang === "es" ? "Español" : "English"}
-            </button>
-          </footer>
-        </section>
+      <header className="auth-top">
+        <span className="auth-brand">
+          <img src="/pwa-192x192.png" alt="" />
+          Acervus Finance
+        </span>
+        <Button variant="ghost" size="small" onClick={() => setLang(lang === "es" ? "en" : "es")}>
+          {lang === "es" ? "English" : "Español"}
+        </Button>
+      </header>
+      <div className="auth-card stack">
+        <div className="auth-head">
+          <span className="auth-tile">
+            <Icon name={icon} />
+          </span>
+          <h1>{title}</h1>
+          {sub && <p className="muted">{sub}</p>}
+        </div>
+        {children}
       </div>
     </div>
-  );
-}
-
-/** The left panel: decoration only, so screen readers skip it. The phone
- *  shows a made-up week of collections, drawn with the app's own colors. */
-function Showcase() {
-  const t = useT();
-  const week = [62, 48, 80, 55, 92, 70, 38];
-  const days = t("MTWTFSS", "LMMJVSD").split("");
-  return (
-    <aside className="auth-show" aria-hidden="true">
-      <p className="auth-tagline">{t("Your lending business, on every device.", "Tu negocio de préstamos, en todos tus dispositivos.")}</p>
-      <div className="auth-rings" />
-      <h2 className="auth-headline">{t("Your loans, in order", "Tus préstamos, en orden")}</h2>
-      <div className="auth-phone">
-        <div className="auth-screen">
-          <span className="auth-notch" />
-          <small>{t("Collected this week", "Cobrado esta semana")}</small>
-          <strong>RD$ 89,700</strong>
-          <div className="auth-bars">
-            {week.map((h, i) => (
-              <span key={i} style={{ height: `${h}%` }} className={i === 4 ? "on" : ""}>
-                <em>{days[i]}</em>
-              </span>
-            ))}
-          </div>
-          <div className="auth-tiles">
-            <span>
-              <small>{t("Active loans", "Préstamos activos")}</small>
-              <b>24</b>
-            </span>
-            <span>
-              <small>{t("Overdue", "Atrasados")}</small>
-              <b className="late">3</b>
-            </span>
-          </div>
-        </div>
-      </div>
-    </aside>
   );
 }
 
@@ -156,17 +106,14 @@ export function SignIn() {
   if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
     <AuthPanel
-      title={t("Sign in", "Iniciar sesión")}
+      title={t("Sign in to Acervus", "Inicia sesión en Acervus")}
       sub={t("We'll email you a 6-digit code. No password to remember.", "Te enviaremos un código de 6 dígitos. Sin contraseñas que recordar.")}
-      corner={
-        <Link to="/sign-up" className="auth-corner">
-          <Icon name="userPlus" />
-          {t("Create account", "Crear cuenta")}
-        </Link>
-      }
     >
       <EmailForm submitLabel={t("Send code", "Enviar código")} onSent={setRequest} />
       <GoogleButton />
+      <p className="auth-foot">
+        {t("New here?", "¿Eres nuevo?")} <Link to="/sign-up">{t("Create an account", "Crea una cuenta")}</Link>
+      </p>
       {app.user === null && localStorage.getItem("acervus.lastUser") && !navigator.onLine && (
         <Button onClick={app.continueOffline}>{t("Continue offline", "Continuar sin conexión")}</Button>
       )}
@@ -181,14 +128,9 @@ export function SignUp() {
   if (request) return <CodeStep request={request} onBack={() => setRequest(null)} />;
   return (
     <AuthPanel
+      icon="userPlus"
       title={t("Create an account", "Crear una cuenta")}
       sub={t("Then create your business or accept an invitation.", "Luego crea tu negocio o acepta una invitación.")}
-      corner={
-        <Link to="/sign-in" className="auth-corner">
-          <Icon name="login" />
-          {t("Sign in", "Iniciar sesión")}
-        </Link>
-      }
     >
       <EmailForm name={name.trim()} submitLabel={t("Send code", "Enviar código")} onSent={setRequest}>
         <label className="auth-field">
@@ -206,6 +148,9 @@ export function SignUp() {
         </label>
       </EmailForm>
       <GoogleButton />
+      <p className="auth-foot">
+        {t("Already have an account?", "¿Ya tienes una cuenta?")} <Link to="/sign-in">{t("Sign in", "Inicia sesión")}</Link>
+      </p>
     </AuthPanel>
   );
 }
@@ -275,6 +220,7 @@ function CodeStep({ request, onBack }: { request: CodeRequest; onBack: () => voi
   };
   return (
     <AuthPanel
+      icon="key"
       title={t("Enter your code", "Escribe tu código")}
       sub={t(`We sent a ${CODE_LENGTH}-digit code to ${request.email}.`, `Enviamos un código de ${CODE_LENGTH} dígitos a ${request.email}.`)}
     >
@@ -329,20 +275,20 @@ export function InviteScreen() {
   const [error, setError] = useState<string | null>(null);
   if (!token || preview === null) {
     return (
-      <AuthPanel title={t("Invitation", "Invitación")}>
+      <AuthPanel icon="mail" title={t("Invitation", "Invitación")}>
         <Banner tone="error" icon="alert">{t("This invitation is no longer valid. Ask for a new one.", "Esta invitación ya no es válida. Pide una nueva.")}</Banner>
         <Link to="/" className="btn block">{t("Continue", "Continuar")}</Link>
       </AuthPanel>
     );
   }
-  if (preview === undefined) return <AuthPanel title={t("Invitation", "Invitación")}>{t("Loading…", "Cargando…")}</AuthPanel>;
+  if (preview === undefined) return <AuthPanel icon="mail" title={t("Invitation", "Invitación")}>{t("Loading…", "Cargando…")}</AuthPanel>;
   const sub = t(
     `You were invited to ${preview.businessName} as ${roleLabel(t, preview.role)}, with ${preview.email}.`,
     `Te invitaron a ${preview.businessName} como ${roleLabel(t, preview.role)}, con ${preview.email}.`,
   );
   if (!app.user) {
     return (
-      <AuthPanel title={t("Invitation", "Invitación")} sub={sub}>
+      <AuthPanel icon="mail" title={t("Invitation", "Invitación")} sub={sub}>
         <p className="small muted">{t("Sign in or create an account with that email address to accept.", "Inicia sesión o crea una cuenta con ese correo para aceptar.")}</p>
         <Link to="/sign-up" className="btn primary block">{t("Create an account", "Crear una cuenta")}</Link>
         <Link to="/sign-in" className="btn block">{t("Sign in", "Iniciar sesión")}</Link>
@@ -350,7 +296,7 @@ export function InviteScreen() {
     );
   }
   return (
-    <AuthPanel title={t("Invitation", "Invitación")} sub={sub}>
+    <AuthPanel icon="mail" title={t("Invitation", "Invitación")} sub={sub}>
       {error && <div className="banner error">{error}</div>}
       <Button
         variant="primary"
@@ -394,6 +340,7 @@ export function Welcome() {
   const zones = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [timezone];
   return (
     <AuthPanel
+      icon="briefcase"
       title={t("Create your business", "Crea tu negocio")}
       sub={t("You'll be its administrator. You can invite others later.", "Serás su administrador. Luego puedes invitar a otros.")}
     >
