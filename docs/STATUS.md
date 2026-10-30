@@ -6,7 +6,7 @@
 - Passwordless email codes (sent through Brevo), plus Continue with Google (working since 2026-10-29). Changed from email and password on 2026-10-28.
 - Offline: create clients, payments, expenses and income. Everything else needs a connection.
 - ID photos: Convex storage, admins only, never cached, exported or printed.
-- Desktop: two-way live sync with the PWA, chosen 2026-10-28 (`DESKTOP-SYNC-PLAN.md`). Phases 0–3 done, phase 4 under way (desktop 0.7.0, not released); each phase needs approval.
+- Desktop: two-way live sync with the PWA, chosen 2026-10-28 (`DESKTOP-SYNC-PLAN.md`). Phases 0–4 done (desktop 0.7.0 released 2026-10-30); phase 5, the import, done 2026-10-30 (the desktop books are the business "VZ Capital Group"); each phase needs approval.
 - Live at https://acervus-finance-pwa.vz-labs.workers.dev (Convex production `proper-pony-55`), deployed by GitHub Actions on every push to `main`. Code is in the private GitHub repo `xvrobiinson/Acervus-Finance-PWA`.
 
 ## Implemented
@@ -29,7 +29,7 @@
   - payment form with live split preview and quick amounts;
   - Money (accounts, movements, all entry forms);
   - Reports (returns, capital and gain, loans by status, monthly cash flow);
-  - change History, Sync center, Settings (device, business, receipts, formats, defaults, logo, wording, people, CSV/JSON export);
+  - change History, Sync center, Settings (device, businesses: open, create, delete; business, receipts, formats, defaults, logo, wording, people, CSV/JSON export);
   - payment and loan receipts (US Letter) with print/PDF and download;
   - English and Spanish; light and dark; phone-first layout (tab bar and "+" button; side rail on wide screens).
 - **Offline:**
@@ -67,6 +67,12 @@ Problems found and fixed while testing:
 - Offline: no new loans or edits; receipts only after sync; queued payments aren't counted in figures until accepted; the app must be opened online once per device. iOS needs the app installed to keep offline data reliably.
 - Desktop-only features with no PWA equivalent: SQLite backup/restore files (replaced by Convex backups and CSV/JSON export), the Windows file picker, keyboard shortcuts, Diagnostics.
 - The receipt page-count note uses the desktop's row measurements (US Letter in Edge). Other browsers may break pages slightly differently.
+
+## To do
+1. **New design for both apps.** The owner will send example designs when ready; wait for them before changing any screens.
+2. Desktop: release the business list (switch, create, delete in Settings › Cloud sync). Committed on the desktop, not pushed; pushing `main` there makes a release, so only on the owner's word.
+3. Try a Collector account on the desktop to see the role-based hiding (not yet seen on screen).
+4. Optional: delete the old test business "VZ Finance" if the owner confirms it holds nothing real.
 
 ## Waiting on you
 1. Deployment, email and Google sign-in are done.
