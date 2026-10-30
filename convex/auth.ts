@@ -47,7 +47,10 @@ const perIp = (window: number, max: number) => (req: Request) =>
 function googleProvider(): BetterAuthOptions["socialProviders"] {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  return clientId && clientSecret ? { google: { clientId, clientSecret, prompt: "select_account" } } : {};
+  // `offline`: Google also returns a refresh token, so the desktop's Drive
+  // backups (scope drive.file, added when the person turns them on) keep
+  // working without signing in to Google again.
+  return clientId && clientSecret ? { google: { clientId, clientSecret, prompt: "select_account", accessType: "offline" } } : {};
 }
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
@@ -60,6 +63,10 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     trustedOrigins: [siteUrl],
     database: authComponent.adapter(ctx),
     socialProviders: googleProvider(),
+    // Google's tokens (they can reach the person's Drive files made by the
+    // app) are stored encrypted with BETTER_AUTH_SECRET. Older plain ones
+    // are still read.
+    account: { encryptOAuthTokens: true },
     session: {
       expiresIn: 60 * 60 * 24 * 14,
       updateAge: 60 * 60 * 24,

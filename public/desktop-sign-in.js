@@ -22,8 +22,13 @@
   }
   const back = new URL(`http://127.0.0.1:${port}/done`);
   back.searchParams.set("state", state);
-  if (ott && /^[A-Za-z0-9_-]{8,128}$/.test(ott)) back.searchParams.set("ott", ott);
-  else back.searchParams.set("error", error.slice(0, 64) || "no_token");
+  // Linking Google to an account that's already signed in (Drive backups)
+  // returns no token: the app already has its session.
+  const linking = q.get("mode") === "link";
+  if (error) back.searchParams.set("error", error.slice(0, 64));
+  else if (linking) back.searchParams.set("linked", "1");
+  else if (ott && /^[A-Za-z0-9_-]{8,128}$/.test(ott)) back.searchParams.set("ott", ott);
+  else back.searchParams.set("error", "no_token");
   say(es ? "Volviendo a la aplicación…" : "Going back to the app…", es ? "Si no pasa nada, vuelve a Acervus Finance en tu PC." : "If nothing happens, go back to Acervus Finance on your PC.");
   location.replace(back.toString());
 })();
