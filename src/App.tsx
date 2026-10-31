@@ -8,6 +8,7 @@ import { useT } from "./lib/i18n";
 import { InviteScreen, SignIn, SignUp, Welcome } from "./screens/auth";
 import { ClientDetail, ClientForm, ClientsScreen } from "./screens/clients";
 import { HistoryScreen } from "./screens/history";
+import { LandingScreen } from "./screens/landing";
 import { LegalScreen } from "./screens/legal";
 import { LoanDetail, LoanForm, LoansScreen } from "./screens/loans";
 import { EntryForm, MoneyScreen, type EntryFormKind } from "./screens/money";
@@ -29,12 +30,16 @@ export function App() {
   // The Terms and the Privacy Policy are public: readable signed in or out.
   if (location.pathname === "/terms") return <LegalScreen page="terms" />;
   if (location.pathname === "/privacy") return <LegalScreen page="privacy" />;
+  // Someone who has never signed in on this device sees the landing page at
+  // once, without waiting for the sign-in check.
+  if (app.mode === "loading" && location.pathname === "/" && !localStorage.getItem("acervus.lastUser")) return <LandingScreen />;
   if (app.mode === "loading") return <Splash />;
   if (app.mode === "signed_out") {
     return (
       <>
         <AutoUpdate />
         <Routes>
+          <Route path="/" element={<LandingScreen />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/invite" element={<InviteScreen />} />

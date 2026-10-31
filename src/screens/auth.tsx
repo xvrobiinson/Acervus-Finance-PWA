@@ -33,10 +33,10 @@ function AuthPanel({ title, sub, icon = "login", children }: { title: string; su
   return (
     <div className="auth">
       <header className="auth-top">
-        <span className="auth-brand">
+        <Link to="/" className="auth-brand" style={{ textDecoration: "none" }}>
           <img src="/pwa-192x192.png" alt="" />
           Acervus Finance
-        </span>
+        </Link>
         <Button variant="ghost" size="small" onClick={() => setLang(lang === "es" ? "en" : "es")}>
           {lang === "es" ? "English" : "Español"}
         </Button>
