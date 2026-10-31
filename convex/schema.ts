@@ -14,6 +14,19 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export const role = v.union(v.literal("admin"), v.literal("collector"), v.literal("viewer"));
+/** Which optional parts of a payment receipt are printed (Settings › Receipts). */
+export const receiptShow = v.object({
+  loanNumber: v.boolean(),
+  amountLent: v.boolean(),
+  rate: v.boolean(),
+  cycle: v.boolean(),
+  installments: v.boolean(),
+  split: v.boolean(),
+  lateFees: v.boolean(),
+  balance: v.boolean(),
+  history: v.boolean(),
+});
+
 export const frequency = v.union(v.literal("daily"), v.literal("weekly"), v.literal("biweekly"), v.literal("monthly"));
 export const method = v.union(v.literal("declining"), v.literal("flat"), v.literal("interest_only"));
 export const contractStatus = v.union(
@@ -88,6 +101,8 @@ export default defineSchema({
 
   settings: defineTable({
     businessId: v.id("businesses"),
+    /** Optional parts of payment receipts; unset (or a missing key) prints it. */
+    receiptShow: v.optional(receiptShow),
     receiptName: v.string(),
     companyAddress: v.string(),
     companyPhone: v.string(),

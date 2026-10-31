@@ -41,7 +41,30 @@ export interface ReceiptSettings {
   companyPhone: string;
   receiptCompany: { name: boolean; address: boolean; phone: boolean };
   receiptClient: { name: boolean; idNumber: boolean; phone: boolean; address: boolean };
+  receiptShow?: Partial<ReceiptShow>;
   receiptText: Record<string, string>;
+}
+
+/** Optional parts of a payment receipt (Settings › Receipts). The business
+ *  name, amount paid, date and receipt number always print; the loan
+ *  receipt is the client's agreement and keeps every term. */
+export interface ReceiptShow {
+  loanNumber: boolean;
+  amountLent: boolean;
+  rate: boolean;
+  cycle: boolean;
+  installments: boolean;
+  split: boolean;
+  lateFees: boolean;
+  balance: boolean;
+  history: boolean;
+}
+
+export const SHOW_KEYS: (keyof ReceiptShow)[] = ["loanNumber", "amountLent", "rate", "cycle", "installments", "split", "lateFees", "balance", "history"];
+
+/** Every part shown unless the business switched it off. */
+export function receiptShow(s: { receiptShow?: Partial<ReceiptShow> }): ReceiptShow {
+  return Object.fromEntries(SHOW_KEYS.map((k) => [k, s.receiptShow?.[k] ?? true])) as unknown as ReceiptShow;
 }
 
 export interface ReceiptClient {
@@ -226,15 +249,17 @@ function clientBlock(c: ReceiptContext, client: ReceiptClient): string {
   return `<div class="block"><p class="label">${esc(c.t("Client", "Cliente"))}</p><table class="kv left">${body}</table></div>`;
 }
 
-function loanBlock(c: ReceiptContext, loan: LoanRecord): string {
+function loanBlock(c: ReceiptContext, loan: LoanRecord, show: ReceiptShow): string {
   const { t, fmt } = c;
   const rows = [
-    row(t("Loan", "Préstamo"), `#${loan.recordNo}`),
-    row(t("Type", "Tipo"), esc(methodShort(t, loan.method))),
-    row(t("Interest rate", "Tasa de interés"), esc(rateLine(t, fmt, loan))),
-    row(t("Amount lent", "Monto prestado"), esc(fmt.money(loan.principal))),
+    show.loanNumber && row(t("Loan", "Préstamo"), `#${loan.recordNo}`),
+    show.cycle && row(t("Type", "Tipo"), esc(methodShort(t, loan.method))),
+    show.rate && row(t("Interest rate", "Tasa de interés"), esc(rateLine(t, fmt, loan))),
+    show.amountLent && row(t("Amount lent", "Monto prestado"), esc(fmt.money(loan.principal))),
     row(t("Loan date", "Fecha del préstamo"), esc(fmt.day(loan.startDate))),
-  ].join("");
+  ]
+    .filter(Boolean)
+    .join("");
   return `<div class="block"><p class="label">${esc(t("Loan", "Préstamo"))}</p><table class="kv">${rows}</table></div>`;
 }
 
@@ -349,17 +374,20 @@ export function paymentReceiptHtml(
   const company = companyLines(c);
   const wording = new Wording(c.settings.receiptText, t);
 
+  const show = receiptShow(c.settings);
   const paid = [row(t("Amount paid", "Monto pagado"), m(payment.amount), "total")];
-  if (payment.fee > 0) paid.push(row(installmentLoan ? t("Late fees", "Cargos por mora") : t("Fee", "Cargo"), m(payment.fee), "sub"));
-  paid.push(row(t("Interest", "Interés"), m(payment.interest), "sub"));
-  paid.push(row(t("Capital", "Abono a capital"), m(payment.principal), "sub"));
+  if (payment.fee > 0 && show.lateFees) paid.push(row(installmentLoan ? t("Late fees", "Cargos por mora") : t("Fee", "Cargo"), m(payment.fee), "sub"));
+  if (show.split) {
+    paid.push(row(t("Interest", "Interés"), m(payment.interest), "sub"));
+    paid.push(row(t("Capital", "Abono a capital"), m(payment.principal), "sub"));
+  }
 
   const bal = [
     row(t("Capital before this payment", "Capital antes de este pago"), m(principalBefore)),
     row(t("Capital remaining", "Capital pendiente"), m(principalAfter)),
   ];
   if (interestAfter > 0) bal.push(row(t("Interest pending", "Interés pendiente"), m(interestAfter)));
-  if (feesAfter > 0) bal.push(row(t("Late fees pending", "Cargos por mora pendientes"), `<span class="neg">${m(feesAfter)}</span>`));
+  if (feesAfter > 0 && show.lateFees) bal.push(row(t("Late fees pending", "Cargos por mora pendientes"), `<span class="neg">${m(feesAfter)}</span>`));
   if (overdueAfter > 0 && installmentLoan) bal.push(row(t("Due and unpaid now", "Vencido sin pagar"), `<span class="neg">${m(overdueAfter)}</span>`));
   bal.push(
     leftToPay !== null
@@ -367,15 +395,17 @@ export function paymentReceiptHtml(
       : row(t("Total owed now", "Total adeudado"), m(owedAfter), "total"),
   );
   const repaid = ratioLabel(loan.principal - principalAfter, loan.principal) ?? "0.0%";
+  const nextLine =
+    nextDue && show.installments
+      ? t(` Next installment: ${fmt.day(nextDue[0])} · ${fmt.money(nextDue[1])}.`, ` Próxima cuota: ${fmt.day(nextDue[0])} · ${fmt.money(nextDue[1])}.`)
+      : "";
+  const progress = (show.balance ? t(`${repaid} of the capital repaid.`, `${repaid} del capital pagado.`) + nextLine : nextLine).trim();
   const statusLine =
     balanceAfter <= 0
       ? `<p class="note done">${CHECK} ${esc(t("This loan is fully paid. Thank you!", "Este préstamo quedó saldado. ¡Gracias!"))}</p>`
-      : `<p class="note">${esc(
-          t(`${repaid} of the capital repaid.`, `${repaid} del capital pagado.`) +
-            (nextDue
-              ? t(` Next installment: ${fmt.day(nextDue[0])} · ${fmt.money(nextDue[1])}.`, ` Próxima cuota: ${fmt.day(nextDue[0])} · ${fmt.money(nextDue[1])}.`)
-              : ""),
-        )}</p>`;
+      : progress
+        ? `<p class="note">${esc(progress)}</p>`
+        : "";
   const notes = payment.notes?.trim() ? `<p class="muted">${esc(t("Note:", "Nota:"))} ${esc(payment.notes)}</p>` : "";
 
   const standingHtml = (s: Standing, paidAmt: Cents) =>
@@ -387,7 +417,7 @@ export function paymentReceiptHtml(
           ? status("late", paidAmt > 0 ? t("Overdue · partly paid", "Atrasada · pago parcial") : t("Overdue", "Atrasada"), false)
           : status("pend", t("Pending", "Pendiente"), false);
 
-  const scheduleHtml = installmentLoan
+  const scheduleHtml = installmentLoan && show.installments
     ? `<div class="block"><h2>${esc(t("Installments", "Cuotas"))} <span class="muted">· ${esc(
         t(`${installmentsPaid![0]} of ${installmentsPaid![1]} paid in full`, `${installmentsPaid![0]} de ${installmentsPaid![1]} pagadas por completo`),
       )}</span></h2>
@@ -446,8 +476,9 @@ export function paymentReceiptHtml(
 
   const footerText = wording.paymentFooter();
   const extra = (company.address || company.phone ? 1 : 0) + Math.max(textRows(footerText) - 1, 0);
-  const scheduleRows = schedule.length ? schedule.length + 2 : 0;
-  const rows = scheduleRows + history.reduce((a, h) => a + Math.max(h.lines.length, 1), 0) + extra;
+  const scheduleRows = schedule.length && scheduleHtml ? schedule.length + 2 : 0;
+  const historyRowCount = show.history ? history.reduce((a, h) => a + Math.max(h.lines.length, 1), 0) : 0;
+  const rows = scheduleRows + historyRowCount + extra;
   const overflow =
     rows > PAYMENT_PAGE_ROWS
       ? `<p class="note">${esc(
@@ -459,19 +490,19 @@ export function paymentReceiptHtml(
       : "";
   const title = t(`Receipt ${number}`, `Recibo ${number}`);
   const body = `${header(c, company, t("Payment receipt", "Recibo de pago"), number, t("Date paid", "Fecha de pago"), fmt.day(payment.paidOn))}
-<div class="cols">${clientBlock(c, r.client)}${loanBlock(c, loan)}</div>
+<div class="cols">${clientBlock(c, r.client)}${loanBlock(c, loan, show)}</div>
 <div class="cols">
   <div class="block"><p class="label">${esc(t("This payment", "Este pago"))}</p><table class="kv">${paid.join("")}</table></div>
-  <div class="block"><p class="label">${esc(t("Balance after this payment", "Saldo después de este pago"))}</p><table class="kv">${bal.join("")}</table></div>
+  ${show.balance ? `<div class="block"><p class="label">${esc(t("Balance after this payment", "Saldo después de este pago"))}</p><table class="kv">${bal.join("")}</table></div>` : ""}
 </div>
 ${statusLine}
 ${overflow}
 ${scheduleHtml}
-${historyHtml}
+${show.history ? historyHtml : ""}
 ${notes}
-<div class="end"><span>${esc(fill(footerText, { company: companyTag(c, company) }))}</span><span>${esc(t("Loan", "Préstamo"))} #${loan.recordNo} · ${esc(
-    t("Receipt", "Recibo"),
-  )} ${number}</span></div>`;
+<div class="end"><span>${esc(fill(footerText, { company: companyTag(c, company) }))}</span><span>${
+    show.loanNumber ? `${esc(t("Loan", "Préstamo"))} #${loan.recordNo} · ` : ""
+  }${esc(t("Receipt", "Recibo"))} ${number}</span></div>`;
   return page(c, title, "", "", body);
 }
 

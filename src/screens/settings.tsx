@@ -3,7 +3,7 @@
 // people (members and invitations) and data export.
 
 import { useAction, useMutation, useQuery } from "convex/react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { DATE_STYLES, formatDay, type DateStyle } from "../../shared/domain/dates";
@@ -16,33 +16,77 @@ import { CURRENCIES, frequencyLabel, roleLabel } from "../lib/labels";
 import { defaultRules, tagList, whenHint, withRules, withText, Wording, wordingProblem, type RuleLine, type RuleSet, type When } from "../receipts/wording";
 import { useBooks } from "../state/app";
 import { Banner, Button, Card, Check, Confirm, Field, Pill, Row, Segmented, Sheet, useToast } from "../ui/kit";
+import { Icon, type IconName } from "../ui/icons";
+import { receiptShow, type ReceiptShow } from "../receipts/receipt";
 import { NewBusinessForm, PendingInvites } from "./auth";
 import { LegalLinks, SUPPORT_EMAIL } from "./legal";
 import { RateInput, useParseError, useRate } from "../ui/inputs";
+
+/** A group of settings behind a row on the Settings page, opened in a sheet. */
+type Panel = "receipts" | "account" | "team" | "data" | "about";
 
 export function SettingsScreen() {
   const t = useT();
   const app = useBooks();
   const { can, mode } = app;
   const admin = can("manage");
+  const online = mode === "online";
+  const [open, setOpen] = useState<Panel | null>(null);
+  // Business and the businesses list (sync) stay on the page; every other
+  // group is a row that opens it in a sheet.
+  const panels: { key: Panel; icon: IconName; title: string; sub: string; body: ReactNode; show: boolean }[] = [
+    {
+      key: "receipts",
+      icon: "receipt",
+      title: t("Receipts", "Recibos"),
+      sub: t("What prints, formats, defaults, wording", "Qué se imprime, formatos, valores, textos"),
+      body: (
+        <>
+          <ReceiptCard />
+          <WordingCard />
+        </>
+      ),
+      show: admin && online,
+    },
+    { key: "account", icon: "settings", title: t("Account and appearance", "Cuenta y apariencia"), sub: t("Language, light or dark, sign out", "Idioma, claro u oscuro, cerrar sesión"), body: <DeviceCard />, show: true },
+    { key: "team", icon: "users", title: t("Team", "Equipo"), sub: t("People, roles and invitations", "Personas, roles e invitaciones"), body: <PeopleCard />, show: admin && online },
+    { key: "data", icon: "download", title: t("Data", "Datos"), sub: t("Export to CSV or JSON", "Exportar a CSV o JSON"), body: <DataCard />, show: admin },
+    { key: "about", icon: "info", title: t("About", "Acerca de"), sub: t("Version, help, terms and privacy", "Versión, ayuda, términos y privacidad"), body: <AboutCard />, show: true },
+  ];
+  const shown = panels.filter((x) => x.show);
+  const current = shown.find((x) => x.key === open);
   return (
     <div>
       <div className="topbar">
         <h1>{t("Settings", "Ajustes")}</h1>
       </div>
-      <DeviceCard />
-      <BusinessesCard />
-      {admin && mode === "online" && (
-        <>
-          <BusinessCard />
-          <ReceiptCard />
-          <WordingCard />
-          <PeopleCard />
-        </>
+      <div className="grid2 even settings-top">
+        {admin && online && <BusinessCard />}
+        <BusinessesCard />
+      </div>
+      {admin && !online && <Banner tone="offline" icon="cloudOff">{t("Business settings need a connection.", "Los ajustes del negocio necesitan conexión.")}</Banner>}
+      <div className="settings-label">{t("Preferences and configuration", "Preferencias y configuración")}</div>
+      <ul className="list boxed settings-cats">
+        {shown.map((x) => (
+          <Row
+            key={x.key}
+            onClick={() => setOpen(x.key)}
+            lead={
+              <span className={`settings-ico ${x.key}`} aria-hidden="true">
+                <Icon name={x.icon} />
+              </span>
+            }
+            title={x.title}
+            sub={x.sub}
+            trail={<Icon name="chevron" className="settings-chev" />}
+          />
+        ))}
+      </ul>
+      {current && (
+        <Sheet title={current.title} wide onClose={() => setOpen(null)}>
+          <div className="settings-panel">{current.body}</div>
+        </Sheet>
       )}
-      {admin && mode !== "online" && <Banner tone="offline" icon="cloudOff">{t("Business settings need a connection.", "Los ajustes del negocio necesitan conexión.")}</Banner>}
-      <DataCard />
-      <AboutCard />
     </div>
   );
 }
@@ -294,6 +338,34 @@ function useSaveSettings() {
   };
 }
 
+/** The receipt part switches, grouped as Settings shows them. */
+const SHOW_GROUPS: [[string, string], [keyof ReceiptShow, string, string][]][] = [
+  [
+    ["Loan details", "Datos del préstamo"],
+    [
+      ["loanNumber", "Loan number", "Número de préstamo"],
+      ["amountLent", "Amount lent", "Monto prestado"],
+      ["rate", "Interest rate", "Tasa de interés"],
+      ["cycle", "Payment cycle", "Frecuencia de pago"],
+    ],
+  ],
+  [
+    ["Payment details", "Datos del pago"],
+    [
+      ["installments", "Installments covered", "Cuotas cubiertas"],
+      ["split", "Interest and capital split", "División entre interés y capital"],
+      ["lateFees", "Late fees", "Mora"],
+    ],
+  ],
+  [
+    ["Balances", "Saldos"],
+    [
+      ["balance", "Remaining balance", "Saldo pendiente"],
+      ["history", "Payment history", "Historial de pagos"],
+    ],
+  ],
+];
+
 function ReceiptCard() {
   const t = useT();
   const { snapshot, businessId, fmt, today } = useBooks();
@@ -301,6 +373,7 @@ function ReceiptCard() {
   const toast = useToast();
   const s = snapshot.settings!;
   const [f, setF] = useState(() => ({ ...s }));
+  const [show, setShow] = useState<ReceiptShow>(() => receiptShow(s));
   const [rate, setRate] = useRate(s.defaultRate);
   const [late, setLate] = useRate(s.lateFeeRate);
   const showErr = useParseError();
@@ -328,6 +401,27 @@ function ReceiptCard() {
           <Check checked={f.receiptClient.phone} onChange={(v) => set("receiptClient", { ...f.receiptClient, phone: v })}>{t("Phone", "Teléfono")}</Check>
           <Check checked={f.receiptClient.address} onChange={(v) => set("receiptClient", { ...f.receiptClient, address: v })}>{t("Address", "Dirección")}</Check>
           <p className="micro muted">{t("Client photos are never printed.", "Las fotos de clientes nunca se imprimen.")}</p>
+        </div>
+        <div className="span2">
+          <div className="small strong">{t("Shown on payment receipts", "En los recibos de pago")}</div>
+          <p className="micro muted" style={{ margin: "2px 0 6px" }}>
+            {t(
+              "The business name, amount paid, payment date and receipt number always print. Loan receipts are the client's agreement and keep every term.",
+              "El nombre del negocio, el monto pagado, la fecha y el número de recibo siempre se imprimen. El recibo del préstamo es el acuerdo con el cliente y conserva todos los términos.",
+            )}
+          </p>
+          <div className="form-grid two">
+            {SHOW_GROUPS.map(([title, keys]) => (
+              <div key={title[0]}>
+                <div className="micro muted strong" style={{ textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 6 }}>{t(title[0], title[1])}</div>
+                {keys.map(([k, en, es]) => (
+                  <Check key={k} checked={show[k]} onChange={(v) => setShow({ ...show, [k]: v })}>
+                    {t(en, es)}
+                  </Check>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
         <Check checked={f.receiptAfterPayment} onChange={(v) => set("receiptAfterPayment", v)}>{t("Show the receipt after recording a payment", "Mostrar el recibo al registrar un pago")}</Check>
         <Check checked={f.receiptAfterLoan} onChange={(v) => set("receiptAfterLoan", v)}>{t("Show the receipt after creating a loan", "Mostrar el recibo al crear un préstamo")}</Check>
@@ -399,7 +493,7 @@ function ReceiptCard() {
             onClick={() =>
               void save({
                 receiptName: f.receiptName, companyAddress: f.companyAddress, companyPhone: f.companyPhone, receiptCompany: f.receiptCompany,
-                receiptClient: f.receiptClient, currencyCode: f.currencyCode, numberStyle: f.numberStyle, dateStyle: f.dateStyle, language: f.language,
+                receiptClient: f.receiptClient, receiptShow: show, currencyCode: f.currencyCode, numberStyle: f.numberStyle, dateStyle: f.dateStyle, language: f.language,
                 defaultRate: rate.value!, defaultFrequency: f.defaultFrequency, lateFeeRate: late.value!, receiptAfterPayment: f.receiptAfterPayment, receiptAfterLoan: f.receiptAfterLoan,
               })
             }

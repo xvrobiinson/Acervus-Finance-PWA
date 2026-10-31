@@ -272,6 +272,25 @@ a.list-row:active, button.list-row:active { background: var(--active); }
 .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
 .empty svg { width: 28px; height: 28px; opacity: 0.6; }
 
+/* ----- settings dashboard ------------------------------------------- */
+/* Business and the businesses list on the page; every other group a row
+   that opens it in a sheet (screens/settings.tsx). */
+.settings-top { align-items: start; }
+.settings-top > .card + .card { margin-top: 0; }
+.settings-label { margin: 24px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.list.settings-cats { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 760px) { .list.settings-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.settings-ico { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-tint); color: var(--accent-text); }
+.settings-ico svg { width: 17px; height: 17px; }
+.settings-ico.account, .settings-ico.data { background: var(--info-tint); color: var(--info); }
+.settings-ico.team { background: var(--positive-tint); color: var(--positive); }
+.settings-ico.about { background: var(--neutral-tint); color: var(--muted); }
+.settings-chev { width: 16px; height: 16px; color: var(--muted); }
+/* Inside a sheet the cards lose their own frame: the sheet is the frame. */
+.settings-panel > .card { background: none; border: 0; box-shadow: none; border-radius: 0; }
+.settings-panel > .card + .card { margin-top: 8px; border-top: 1px solid var(--rule); }
+.settings-panel > .card .card-head, .settings-panel > .card .card-body { padding-left: 0; padding-right: 0; }
+
 /* ----- tables (horizontally scrollable on phones) --------------------- */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 20px; }
