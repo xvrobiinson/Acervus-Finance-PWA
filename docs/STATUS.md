@@ -76,6 +76,16 @@ Problems found and fixed while testing:
 5. **Terms of Service and Privacy Policy.** Done 2026-10-30 as a plain-language draft (no lawyer, no governing-law clause, not limited to businesses): public pages `/terms` and `/privacy` in English and Spanish, linked from the sign-in pages and Settings › About in both apps. Accepting is by using the app; no checkbox.
 6. **Landing page.** Done 2026-10-31: visitors who are not signed in see a marketing page at `/` (screens/landing.tsx): hero with a real screenshot, features, a clickable showcase, benefits, three steps, web and Windows download, FAQ, English and Spanish, light and dark. Screenshots are the desktop app on synthetic demo data (public/landing, not precached). No pricing yet (owner will give plans later), no testimonials or figures.
 
+7. **Settings redesign, receipt field toggles, wider layout.** In progress (owner, 2026-10-31), desktop first, then the PWA:
+   - Settings becomes a dashboard: Business and Cloud sync stay on the page; every other group is a compact row that opens its settings in a popup.
+   - Receipts get show/hide switches for each optional detail (loan number, rate, amount lent, payment cycle, installments, split, late fees, balance, history), synced like the other receipt settings.
+   - Screens use the window's width instead of narrow fixed columns.
+   - A mockup is drawn first for approval.
+
+## Planned (upcoming, not started)
+- **Custom domain:** serve Acervus Finance from the owner's own domain instead of only the Cloudflare Workers address.
+- **Pricing and subscription plans:** plans, prices and billing; then a pricing section on the landing page.
+- **Payment method on payments:** record how each payment was made (cash, transfer, …) and let receipts show it. Not recorded today, so receipts can't show it yet.
+
 ## Waiting on you
 1. Deployment, email and Google sign-in are done.
-2. Later: a custom domain (optional).
