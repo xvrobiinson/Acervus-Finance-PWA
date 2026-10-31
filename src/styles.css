@@ -45,7 +45,7 @@
   --app-sky: var(--ground);
   --app-deco: none;
   /* Landing page screenshots: one per theme. */
-  --lp-light: block; --lp-dark: none;
+  --lp-light: block; --lp-dark: none; --lp-muted: #3f4352;
   /* The selected sidebar item: an accent tint in light, a framed neutral chip in dark. */
   --rail-on: var(--accent-tint); --rail-on-edge: transparent; --rail-on-ink: var(--accent-text); --rail-on-icon: var(--accent-text);
   --overlay: rgba(11, 16, 32, 0.32);
@@ -76,7 +76,7 @@
     --positive: #34d399; --positive-tint: #14291f; --warning: #f5b451; --warning-tint: #2e2414;
     --negative: #f87171; --negative-tint: #351c1e; --info: #7fb2ff; --info-tint: #1b2538; --neutral-tint: #26272e; --grid: #26272c;
     --chart-reference: #f59e42; --overlay: rgba(0, 0, 0, 0.5);
-    --app-sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--ground) 100%); --app-deco: ""; --lp-light: none; --lp-dark: block;
+    --app-sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--ground) 100%); --app-deco: ""; --lp-light: none; --lp-dark: block; --lp-muted: #a7aab6;
     --rail-on: var(--neutral-tint); --rail-on-edge: var(--border); --rail-on-ink: var(--ink); --rail-on-icon: var(--accent-text);
     --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 8px 24px -6px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.045);
     --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 20px -4px rgba(0, 0, 0, 0.48), 0 24px 56px -12px rgba(0, 0, 0, 0.8);
@@ -92,7 +92,7 @@
   --positive: #34d399; --positive-tint: #14291f; --warning: #f5b451; --warning-tint: #2e2414;
   --negative: #f87171; --negative-tint: #351c1e; --info: #7fb2ff; --info-tint: #1b2538; --neutral-tint: #26272e; --grid: #26272c;
   --chart-reference: #f59e42; --overlay: rgba(0, 0, 0, 0.5);
-  --app-sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--ground) 100%); --app-deco: ""; --lp-light: none; --lp-dark: block;
+  --app-sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--ground) 100%); --app-deco: ""; --lp-light: none; --lp-dark: block; --lp-muted: #a7aab6;
   --rail-on: var(--neutral-tint); --rail-on-edge: var(--border); --rail-on-ink: var(--ink); --rail-on-icon: var(--accent-text);
   --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 8px 24px -6px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.045);
   --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 20px -4px rgba(0, 0, 0, 0.48), 0 24px 56px -12px rgba(0, 0, 0, 0.8);
@@ -456,19 +456,19 @@ textarea.input { min-height: 88px; resize: vertical; }
 
 /* ----- landing page --------------------------------------------------- */
 /* The public page for visitors (screens/landing.tsx): a dark hero card with
-   the product inside it, a floating bar, then cards on the app's ground. */
-.lp { min-height: 100dvh; background: var(--ground); color: var(--ink); position: relative; overflow-x: clip; }
-/* The sign-in sky (day in light mode, night in dark) behind the top of the
-   page, fading into the ground below the hero so the sections read plainly. */
-.lp-sky { position: absolute; inset: 0 0 auto 0; height: 1150px; z-index: 0; overflow: hidden; pointer-events: none;
-  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 42%, var(--ground) 100%); }
+   the product inside it, a floating bar, then cards, all on the sky. */
+.lp { --muted: var(--lp-muted); min-height: 100dvh; background: var(--sky-low); color: var(--ink); position: relative; overflow-x: clip; }
+/* The sign-in sky (day in light mode, night in dark) fills the screen and
+   stays put while the page scrolls over it. */
+.lp-sky { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-low) 100%); }
 .lp-sky::before { /* the arcs */
-  content: ""; position: absolute; left: 50%; top: 52%; width: 1500px; height: 1500px; transform: translate(-50%, -50%);
+  content: ""; position: absolute; left: 50%; top: 58%; width: 1500px; height: 1500px; transform: translate(-50%, -50%);
   border-radius: 50%; border: 1px solid var(--arc); box-shadow: 0 0 0 210px transparent, 0 0 0 211px var(--arc);
-  -webkit-mask: linear-gradient(180deg, transparent 12%, #000 34%, #000 55%, transparent 78%);
-  mask: linear-gradient(180deg, transparent 12%, #000 34%, #000 55%, transparent 78%); }
-.lp-sky::after { /* the clouds, under the hero */
-  content: ""; position: absolute; left: -10%; right: -10%; top: 520px; height: 520px; filter: blur(18px);
+  -webkit-mask: linear-gradient(180deg, transparent 18%, #000 40%, #000 55%, transparent 75%);
+  mask: linear-gradient(180deg, transparent 18%, #000 40%, #000 55%, transparent 75%); }
+.lp-sky::after { /* the clouds along the bottom of the screen */
+  content: ""; position: absolute; left: -10%; right: -10%; bottom: -6%; height: 46%; filter: blur(18px);
   background:
     radial-gradient(30% 55% at 8% 70%, var(--cloud) 0 45%, transparent 72%),
     radial-gradient(26% 50% at 30% 92%, var(--cloud) 0 45%, transparent 72%),
@@ -476,10 +476,11 @@ textarea.input { min-height: 88px; resize: vertical; }
     radial-gradient(28% 55% at 80% 78%, var(--cloud) 0 45%, transparent 72%),
     radial-gradient(30% 45% at 98% 95%, var(--cloud) 0 45%, transparent 72%); }
 .lp > main { position: relative; z-index: 1; }
-.lp-wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; position: relative; }
+/* Wide: the content runs almost to the window's edges. */
+.lp-wrap { max-width: 1840px; margin: 0 auto; padding: 0 clamp(14px, 2.2vw, 36px); position: relative; }
 .lp-light-only { display: var(--lp-light); }
 .lp-dark-only { display: var(--lp-dark); }
-.lp-nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--ground) 78%, transparent);
+.lp-nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--surface) 58%, transparent);
   -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--border); padding-top: var(--safe-top); }
 .lp-nav-in { display: flex; align-items: center; gap: 24px; height: 68px; }
 .lp-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none !important; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
@@ -506,16 +507,16 @@ textarea.input { min-height: 88px; resize: vertical; }
 .lp-menu { display: flex; flex-direction: column; padding-bottom: 16px; }
 .lp-menu a { padding: 12px 4px; color: var(--ink); text-decoration: none; font-size: 16px; }
 .lp-menu-row { display: flex; gap: 10px; margin-top: 8px; } .lp-menu-row .lp-pill { flex: 1; }
-.lp-hero { position: relative; margin-top: 22px; border-radius: 30px; overflow: hidden; min-height: 600px; color: #fff;
+.lp-hero { position: relative; margin-top: 22px; border-radius: 30px; overflow: hidden; min-height: clamp(600px, 44vw, 760px); color: #fff;
   background: radial-gradient(700px 420px at 85% 0%, rgba(124, 108, 255, 0.38), transparent 70%), radial-gradient(600px 400px at 0% 100%, rgba(240, 138, 44, 0.16), transparent 70%), linear-gradient(160deg, #151829, #0b0c12);
   box-shadow: 0 30px 70px rgba(15, 18, 40, 0.25); }
-.lp-hero-text { position: relative; z-index: 2; padding: 72px 0 0 56px; max-width: 470px; }
+.lp-hero-text { position: relative; z-index: 2; padding: 80px 0 0 clamp(28px, 4vw, 72px); width: 44%; max-width: 620px; }
 .lp-eyebrow { display: flex; align-items: center; gap: 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 255, 255, 0.78); }
 .lp-eyebrow i { width: 40px; height: 1px; background: rgba(255, 255, 255, 0.55); }
-.lp-hero h1 { margin-top: 20px; font-size: 60px; line-height: 1; font-weight: 600; letter-spacing: -0.035em; }
+.lp-hero h1 { margin-top: 20px; font-size: clamp(48px, 4.2vw, 76px); line-height: 1; font-weight: 600; letter-spacing: -0.035em; }
 .lp-hero p { margin: 22px 0 0; font-size: 17px; line-height: 27px; color: rgba(255, 255, 255, 0.78); }
 .lp-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; } .lp-cta.center { justify-content: center; }
-.lp-hero-shot { position: absolute; left: 50%; top: 96px; width: 780px; border-radius: 16px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.12); }
+.lp-hero-shot { position: absolute; left: 48%; top: 96px; width: 60%; min-width: 760px; border-radius: 16px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.12); }
 .lp-bar { position: relative; z-index: 3; width: 86%; margin: -46px auto 0; display: flex; align-items: center; gap: 20px; padding: 12px 12px 12px 26px; border-radius: 20px;
   background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--border); box-shadow: var(--shadow-floating);
   -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
@@ -574,9 +575,9 @@ textarea.input { min-height: 88px; resize: vertical; }
 .lp-foot-links { display: flex; flex-wrap: wrap; gap: 22px; } .lp-foot-links a { color: inherit; }
 @media (max-width: 900px) {
   .lp-links, .lp-wide-only { display: none; } .lp-burger { display: inline-flex; }
-  .lp-hero { min-height: 0; padding-bottom: 70px; } .lp-hero-text { padding: 44px 24px 0; max-width: none; }
+  .lp-hero { min-height: 0; padding-bottom: 70px; } .lp-hero-text { padding: 44px 24px 0; max-width: none; width: auto; }
   .lp-hero h1 { font-size: 42px; }
-  .lp-hero-shot { position: relative; left: auto; top: auto; width: 130%; max-width: none; margin: 34px 0 0 24px; }
+  .lp-hero-shot { position: relative; left: auto; top: auto; min-width: 0; width: 130%; max-width: none; margin: 34px 0 0 24px; }
   .lp-bar { flex-direction: column; align-items: stretch; gap: 12px; width: 92%; padding: 18px; } .lp-sep { display: none; }
   .lp-h2 { font-size: 32px; } .lp-final h2 { font-size: 34px; }
   .lp-grid.four, .lp-grid.three, .lp-ways { grid-template-columns: minmax(0, 1fr); }
