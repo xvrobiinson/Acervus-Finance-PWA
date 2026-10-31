@@ -409,7 +409,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .auth.splash { grid-template-rows: 1fr; align-items: center; }
 .auth .panel { width: 100%; max-width: 400px; }
 .auth .logo { width: 56px; height: 56px; border-radius: 14px; }
-.auth-top { width: 100%; max-width: 1120px; display: flex; align-items: center; justify-content: space-between; }
+/* Lined up with the landing page's menu bar: near the window's edges. */
+.auth-top { width: 100%; max-width: 1840px; padding: 0 clamp(0px, 1.2vw, 20px); display: flex; align-items: center; justify-content: space-between; }
 .auth-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; color: var(--ink); }
 .auth-brand img { width: 30px; height: 30px; border-radius: 8px; }
 .auth-top .btn.ghost:hover { background: color-mix(in srgb, var(--surface) 55%, transparent); }
