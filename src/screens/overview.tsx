@@ -1,6 +1,6 @@
 // Overview: where the money is and who owes it, before anything to do.
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { addMonths, maxDay } from "../../shared/domain/dates";
 import { firstActivity, gain, history, netInvested, realizedIncome } from "../../shared/domain/portfolio";
 import { ratioLabel } from "../../shared/domain/money";
@@ -32,7 +32,10 @@ export function OverviewScreen() {
   return (
     <div>
       <div className="topbar">
-        <h1>{snapshot.business.name}</h1>
+        <div className="grow">
+          <h1>{greeting(t)}</h1>
+          <div className="small muted ellipsis">{snapshot.business.name}</div>
+        </div>
         {can("record") && (
           <Button variant="primary" size="small" icon="receipt" onClick={() => open({ kind: "payment" })}>
             {t("Payment", "Pago")}
@@ -43,14 +46,18 @@ export function OverviewScreen() {
         {/* The business's totals are for admins; collectors and viewers see their work. */}
         {!admin ? (
           <div className="stats">
-            <Stat lead label={t("Active loans", "Préstamos activos")} value={String(s.activeLoans)} caption={t(`${s.dueSoonLoans} due soon`, `${s.dueSoonLoans} vencen pronto`)} />
+            <Stat lead icon="loans" label={t("Active loans", "Préstamos activos")} value={String(s.activeLoans)} caption={t(`${s.dueSoonLoans} due soon`, `${s.dueSoonLoans} vencen pronto`)} />
             <Stat
+              icon="alert"
+              hue={s.overdueAmount > 0 ? "neg" : "neutral"}
               label={t("Overdue", "Atrasado")}
               value={fmt.money(s.overdueAmount)}
               tone={s.overdueAmount > 0 ? "neg" : undefined}
               caption={t(`${s.overdueLoans} loans`, `${s.overdueLoans} préstamos`)}
             />
             <Stat
+              icon="clock"
+              hue="info"
               label={t("Receivable", "Por cobrar")}
               value={fmt.money(s.interestReceivable + s.feesReceivable)}
               caption={t("Interest and late fees due, unpaid", "Interés y mora vencidos sin pagar")}
@@ -60,6 +67,7 @@ export function OverviewScreen() {
           <div className="stats">
             <Stat
               lead
+              icon="wallet"
               label={t("Portfolio value", "Valor del portafolio")}
               value={fmt.money(s.portfolioValue)}
               caption={
@@ -68,17 +76,21 @@ export function OverviewScreen() {
                 </span>
               }
             />
-            <Stat label={t("Available capital", "Capital disponible")} value={fmt.money(s.availableCapital)} />
-            <Stat label={t("Available interest", "Interés disponible")} value={fmt.money(s.availableInterest)} />
-            <Stat label={t("Capital lent out", "Capital prestado")} value={fmt.money(s.outstandingPrincipal)} caption={t(`${s.activeLoans} active loans`, `${s.activeLoans} préstamos activos`)} />
-            <Stat label={t("Interest earned", "Interés cobrado")} value={fmt.money(realizedIncome(s))} caption={t(`${fmt.money(s.expectedMonthlyInterest)} expected a month`, `${fmt.money(s.expectedMonthlyInterest)} esperados al mes`)} />
+            <Stat icon="briefcase" label={t("Available capital", "Capital disponible")} value={fmt.money(s.availableCapital)} />
+            <Stat icon="receipt" hue="pos" label={t("Available interest", "Interés disponible")} value={fmt.money(s.availableInterest)} />
+            <Stat icon="loans" hue="info" label={t("Capital lent out", "Capital prestado")} value={fmt.money(s.outstandingPrincipal)} caption={t(`${s.activeLoans} active loans`, `${s.activeLoans} préstamos activos`)} />
+            <Stat icon="chart" hue="pos" label={t("Interest earned", "Interés cobrado")} value={fmt.money(realizedIncome(s))} caption={t(`${fmt.money(s.expectedMonthlyInterest)} expected a month`, `${fmt.money(s.expectedMonthlyInterest)} esperados al mes`)} />
             <Stat
+              icon="alert"
+              hue={s.overdueAmount > 0 ? "neg" : "neutral"}
               label={t("Overdue", "Atrasado")}
               value={fmt.money(s.overdueAmount)}
               tone={s.overdueAmount > 0 ? "neg" : undefined}
               caption={t(`${s.overdueLoans} loans · ${s.dueSoonLoans} due soon`, `${s.overdueLoans} préstamos · ${s.dueSoonLoans} vencen pronto`)}
             />
             <Stat
+              icon="clock"
+              hue="info"
               label={t("Receivable", "Por cobrar")}
               value={fmt.money(s.interestReceivable + s.feesReceivable)}
               caption={t("Interest and late fees due, unpaid", "Interés y mora vencidos sin pagar")}
@@ -121,11 +133,17 @@ export function OverviewScreen() {
             </div>
           </Card>
         )}
-        <Card title={t("Needs attention", "Requiere atención")} action={<LinkButton to="/loans" size="small" variant="ghost">{t("All loans", "Préstamos")}</LinkButton>}>
+        <Section
+          title={t("Needs attention", "Requiere atención")}
+          count={attention.length > 0 ? t(`${attention.length} loans`, `${attention.length} préstamos`) : undefined}
+          action={<LinkButton to="/loans" size="small" variant="ghost">{t("All loans", "Préstamos")}</LinkButton>}
+        >
           {attention.length === 0 ? (
-            <Empty icon="check">{t("Nothing overdue or due in the next 5 days.", "Nada atrasado ni por vencer en los próximos 5 días.")}</Empty>
+            <Card>
+              <Empty icon="check">{t("Nothing overdue or due in the next 5 days.", "Nada atrasado ni por vencer en los próximos 5 días.")}</Empty>
+            </Card>
           ) : (
-            <ul className="list">
+            <ul className="list boxed">
               {attention.map((l) => (
                 <Row
                   key={l.loan._id}
@@ -149,14 +167,16 @@ export function OverviewScreen() {
               ))}
             </ul>
           )}
-        </Card>
+        </Section>
       </div>
 
-      <Card title={t("Recent payments", "Pagos recientes")} className="section" action={admin && <LinkButton to="/money" size="small" variant="ghost">{t("Money", "Dinero")}</LinkButton>}>
+      <Section title={t("Recent payments", "Pagos recientes")} action={admin && <LinkButton to="/money" size="small" variant="ghost">{t("Money", "Dinero")}</LinkButton>}>
         {recent.length === 0 ? (
-          <Empty icon="receipt">{t("No payments yet.", "Aún no hay pagos.")}</Empty>
+          <Card>
+            <Empty icon="receipt">{t("No payments yet.", "Aún no hay pagos.")}</Empty>
+          </Card>
         ) : (
-          <ul className="list">
+          <ul className="list boxed">
             {recent.map((p) => {
               const l = books.loanById.get(p.loanId);
               return (
@@ -172,7 +192,31 @@ export function OverviewScreen() {
             })}
           </ul>
         )}
-      </Card>
+      </Section>
     </div>
   );
+}
+
+/** A list that stands on the page: a heading, an optional count pill and
+ *  one action, over rows that are each their own small card. */
+function Section({ title, count, action, children }: { title: string; count?: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="section-list">
+      <div className="section-head">
+        <h2>{title}</h2>
+        {count && <Pill tone="accent">{count}</Pill>}
+        <span className="spacer" />
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** The Overview title: a greeting for the time of day. */
+function greeting(t: (en: string, es: string) => string): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return t("Good morning", "Buenos días");
+  if (h >= 12 && h < 18) return t("Good afternoon", "Buenas tardes");
+  return t("Good evening", "Buenas noches");
 }

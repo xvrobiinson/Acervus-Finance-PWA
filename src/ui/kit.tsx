@@ -70,10 +70,39 @@ export function Card({ title, action, children, className }: { title?: ReactNode
   );
 }
 
-export function Stat({ label, value, caption, lead, tone }: { label: string; value: string; caption?: ReactNode; lead?: boolean; tone?: "pos" | "neg" | "warn" }) {
+export type Hue = "accent" | "info" | "pos" | "warn" | "neg" | "neutral";
+
+/** One figure on its own card. With `icon`, the icon sits in a colored
+ *  square (`hue`) and the label reads in ink beside it. */
+export function Stat({
+  label,
+  value,
+  caption,
+  lead,
+  tone,
+  icon,
+  hue = "accent",
+}: {
+  label: string;
+  value: string;
+  caption?: ReactNode;
+  lead?: boolean;
+  tone?: "pos" | "neg" | "warn";
+  icon?: IconName;
+  hue?: Hue;
+}) {
   return (
     <div className={`stat ${lead ? "lead" : ""}`}>
-      <div className="label">{label}</div>
+      {icon ? (
+        <div className="label squared">
+          <span className={`square ${hue}`} aria-hidden="true">
+            <Icon name={icon} />
+          </span>
+          {label}
+        </div>
+      ) : (
+        <div className="label">{label}</div>
+      )}
       <div className={`value num-left ${tone ?? ""}`} style={{ textAlign: "left" }}>
         {value}
       </div>
