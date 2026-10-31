@@ -50,6 +50,13 @@ export function SettingsScreen() {
 /** Who makes the app, the version, how to reach us and the legal pages. */
 function AboutCard() {
   const t = useT();
+  const toast = useToast();
+  // Copies the address: a mail link could land on a webmail sign-in.
+  const copy = () =>
+    navigator.clipboard.writeText(SUPPORT_EMAIL).then(
+      () => toast(t("Email address copied", "Correo copiado")),
+      () => toast(SUPPORT_EMAIL),
+    );
   return (
     <Card title={t("About", "Acerca de")} className="section">
       <div className="card-body stack tight">
@@ -59,8 +66,13 @@ function AboutCard() {
             {t("Version", "Versión")} {__APP_VERSION__}
           </span>
         </div>
-        <div className="small muted">
-          {t("Questions or help:", "Preguntas o ayuda:")} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        <div className="row wrap small muted">
+          <span>
+            {t("Questions or help:", "Preguntas o ayuda:")} <span className="strong" style={{ color: "var(--ink)", userSelect: "all" }}>{SUPPORT_EMAIL}</span>
+          </span>
+          <Button size="small" variant="ghost" icon="mail" onClick={copy}>
+            {t("Copy email", "Copiar correo")}
+          </Button>
         </div>
         <div className="small">
           <LegalLinks />

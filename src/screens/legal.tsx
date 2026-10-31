@@ -246,7 +246,7 @@ export function LegalScreen({ page }: { page: "terms" | "privacy" }) {
           <h2>{t("Contact", "Contacto")}</h2>
           <p>
             {t("Questions, requests or account deletion:", "Preguntas, solicitudes o borrar tu cuenta:")}{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            <strong style={{ userSelect: "all" }}>{SUPPORT_EMAIL}</strong>
           </p>
         </section>
         <p className="legal-links small">
