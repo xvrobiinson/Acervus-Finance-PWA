@@ -9,8 +9,9 @@ import { useLang, useT } from "../lib/i18n";
 import { Icon, type IconName } from "../ui/icons";
 import { LegalLinks, SUPPORT_EMAIL } from "./legal";
 
-/** The latest Windows installer, published by the desktop app's releases. */
-export const DESKTOP_DOWNLOAD = "https://github.com/xvrobiinson/ACERVUS-APP/releases/latest";
+/** The latest Windows installer: a direct file download (each desktop release
+ *  also publishes it under this fixed name), so the visitor stays on the page. */
+export const DESKTOP_DOWNLOAD = "https://github.com/xvrobiinson/ACERVUS-APP/releases/latest/download/AcervusFinance-Setup.exe";
 
 type Pair = [string, string];
 
@@ -479,7 +480,7 @@ export function LandingScreen() {
                 <li><Check />{t("Backups on your PC or in your own Google Drive.", "Copias de seguridad en tu PC o en tu propio Google Drive.")}</li>
               </ul>
               <div className="lp-way-cta">
-                <a href={DESKTOP_DOWNLOAD} className="lp-pill light" target="_blank" rel="noopener noreferrer">
+                <a href={DESKTOP_DOWNLOAD} className="lp-pill light" download>
                   <Icon name="download" />
                   {t("Download for Windows", "Descargar para Windows")}
                 </a>
@@ -522,7 +523,7 @@ export function LandingScreen() {
           </div>
           <div className="lp-foot-links">
             <LegalLinks />
-            <a href={DESKTOP_DOWNLOAD} target="_blank" rel="noopener noreferrer">
+            <a href={DESKTOP_DOWNLOAD} download>
               {t("Download for Windows", "Descargar para Windows")}
             </a>
           </div>
