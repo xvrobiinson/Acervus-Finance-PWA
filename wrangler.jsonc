@@ -1,6 +1,8 @@
-// Cloudflare Workers static assets: serves the built PWA (dist/) over HTTPS.
-// No Worker code runs (Convex is the backend), so this is assets-only, with
-// unknown paths answered by index.html for the single-page app.
+// Cloudflare Workers static assets: serves the built PWA (dist/) over HTTPS,
+// with unknown paths answered by index.html for the single-page app.
+// Convex is the backend. The only Worker code (worker/index.ts) runs for
+// /download/* and serves the Windows installer from this address; every
+// other request goes straight to the assets.
 // Security headers come from public/_headers.
 // Deployed only from main by .github/workflows/deploy.yml; no preview URLs.
 {
@@ -9,8 +11,11 @@
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
   "preview_urls": false,
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/download/*"]
   }
 }

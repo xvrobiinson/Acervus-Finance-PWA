@@ -9,9 +9,9 @@ import { useLang, useT } from "../lib/i18n";
 import { Icon, type IconName } from "../ui/icons";
 import { LegalLinks, SUPPORT_EMAIL } from "./legal";
 
-/** The latest Windows installer: a direct file download (each desktop release
- *  also publishes it under this fixed name), so the visitor stays on the page. */
-export const DESKTOP_DOWNLOAD = "https://github.com/xvrobiinson/ACERVUS-APP/releases/latest/download/AcervusFinance-Setup.exe";
+/** The latest Windows installer, served from this site (worker/index.ts), so
+ *  the download starts at once and the visitor stays on the page. */
+export const DESKTOP_DOWNLOAD = "/download/windows";
 
 type Pair = [string, string];
 

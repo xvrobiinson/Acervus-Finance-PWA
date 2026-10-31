@@ -14,6 +14,6 @@
     "noEmit": true,
     "types": ["vite/client", "vite-plugin-pwa/react", "node"]
   },
-  "include": ["src", "shared", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "shared", "worker", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["shared/**/fixtures"]
 }

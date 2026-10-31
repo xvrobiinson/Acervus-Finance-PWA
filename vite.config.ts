@@ -39,7 +39,7 @@ export default defineConfig({
         navigateFallback: "/index.html",
         // The desktop's Google sign-in page must never become the app, or
         // the app would use the sign-in token meant for the desktop.
-        navigateFallbackDenylist: [/^\/desktop-sign-in/],
+        navigateFallbackDenylist: [/^\/desktop-sign-in/, /^\/download\//],
         // Only the app itself is cached. Financial data never goes through
         // the service worker: it comes from Convex over a WebSocket and is
         // kept by the app in IndexedDB, per signed-in user.
