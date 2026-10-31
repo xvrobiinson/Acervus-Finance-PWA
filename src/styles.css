@@ -458,9 +458,24 @@ textarea.input { min-height: 88px; resize: vertical; }
 /* The public page for visitors (screens/landing.tsx): a dark hero card with
    the product inside it, a floating bar, then cards on the app's ground. */
 .lp { min-height: 100dvh; background: var(--ground); color: var(--ink); position: relative; overflow-x: clip; }
-.lp::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 560px; pointer-events: none;
-  background: radial-gradient(520px 260px at 10% 0%, color-mix(in srgb, var(--info) 18%, transparent), transparent 70%),
-    radial-gradient(520px 260px at 90% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%); }
+/* The sign-in sky (day in light mode, night in dark) behind the top of the
+   page, fading into the ground below the hero so the sections read plainly. */
+.lp-sky { position: absolute; inset: 0 0 auto 0; height: 1150px; z-index: 0; overflow: hidden; pointer-events: none;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 42%, var(--ground) 100%); }
+.lp-sky::before { /* the arcs */
+  content: ""; position: absolute; left: 50%; top: 52%; width: 1500px; height: 1500px; transform: translate(-50%, -50%);
+  border-radius: 50%; border: 1px solid var(--arc); box-shadow: 0 0 0 210px transparent, 0 0 0 211px var(--arc);
+  -webkit-mask: linear-gradient(180deg, transparent 12%, #000 34%, #000 55%, transparent 78%);
+  mask: linear-gradient(180deg, transparent 12%, #000 34%, #000 55%, transparent 78%); }
+.lp-sky::after { /* the clouds, under the hero */
+  content: ""; position: absolute; left: -10%; right: -10%; top: 520px; height: 520px; filter: blur(18px);
+  background:
+    radial-gradient(30% 55% at 8% 70%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(26% 50% at 30% 92%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(34% 60% at 55% 100%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(28% 55% at 80% 78%, var(--cloud) 0 45%, transparent 72%),
+    radial-gradient(30% 45% at 98% 95%, var(--cloud) 0 45%, transparent 72%); }
+.lp > main { position: relative; z-index: 1; }
 .lp-wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; position: relative; }
 .lp-light-only { display: var(--lp-light); }
 .lp-dark-only { display: var(--lp-dark); }
@@ -508,7 +523,7 @@ textarea.input { min-height: 88px; resize: vertical; }
 .lp-bar-item .k { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
 .lp-bar-item .v { font-size: 14px; color: var(--muted); margin-top: 3px; }
 .lp-sep { width: 1px; height: 34px; background: var(--control); }
-.lp-tagline { text-align: center; margin: 22px 0 0; color: var(--muted); font-size: 14px; }
+.lp-tagline { text-align: center; margin: 22px 0 0; color: var(--ink); font-size: 14px; font-weight: 500; }
 .lp-section { padding-top: 110px; scroll-margin-top: 70px; }
 .lp-section.center { text-align: center; }
 .lp-kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); }

@@ -276,6 +276,7 @@ export function LandingScreen() {
 
   return (
     <div className="lp">
+      <div className="lp-sky" aria-hidden="true" />
       <header className="lp-nav">
         <div className="lp-wrap lp-nav-in">
           <a href="#top" className="lp-brand">
