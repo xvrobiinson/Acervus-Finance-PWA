@@ -72,18 +72,8 @@ Problems found and fixed while testing:
 1. **Collector test.** Done 2026-10-30: open invitations for the signed-in email show an Accept button (welcome screen and Settings › Businesses), and Google sign-in comes back to the invitation. The owner confirmed it works. After it, the business's totals were hidden from collectors and viewers (owner's call): Overview shows active loans, overdue and receivable only, with no growth chart; Money and Reports are admins only (same on the desktop: no Analytics, no totals in the Loans and Payments headers). This hides them on screen; the devices still receive every loan, so the cloud doesn't restrict the data itself.
 2. **New design for both apps.** Done 2026-10-30: the owner chose the "Dashboard style" from their examples (glassmorphism and a hero-card style were tried and declined). Violet accent, each figure on its own card with its icon in a colored square, Needs attention and Recent payments as card-style rows under a section heading, a greeting as the Overview title, and the sign-in's night sky behind every screen in dark mode only (the blue day sky was declined for light mode). Desktop: every screen (see its DESIGN.md). PWA: the same palette and pieces in `styles.css`; committed, deploy waiting for the owner's OK.
 3. **Desktop release.** Done 2026-10-30: version 0.8 (business list, hidden totals for collectors, the redesign) pushed to `main` on the owner's word.
-4. **Branding.** Brand architecture (owner, 2026-10-30): **VZ Labs** is the parent technology brand; **Acervus Finance** is its first major software product. Show this in an About section in the PWA and the desktop app. Questions for the owner:
-   - Exact About wording? Suggestion: "Acervus Finance, by VZ Labs" plus the version.
-   - Copyright line: "© 2026 VZ Labs"? Is VZ Labs a registered company (full legal name, such as SRL or LLC, and country)?
-   - Contact for VZ Labs: website and support email to show?
-   - Is there a VZ Labs logo? Where should it appear (About only, sign-in screen, receipt footer)?
-   - Desktop installer: change the Windows "Publisher" to VZ Labs?
-   - Old "VZ Finance" names remain inside the desktop (`vz-finance.exe`, the `VZFinance` data folder). Rename them? Moving the data folder needs a careful migration.
-5. **Terms of Service** for the app (PWA and desktop). Questions for the owner:
-   - Which country's law applies, and is the service for businesses only?
-   - A Privacy Policy as well? It would say where data lives (Convex, Cloudflare, Google Drive backups) and how to delete an account.
-   - Must people accept them at sign-up (a checkbox), or is a link in About enough?
-   - Will a lawyer review the text? A draft from us is a starting point, not legal advice.
+4. **Branding.** Done 2026-10-30 (owner's answers): About in both apps says "Acervus Finance, by VZ Labs" with the version, contact officialvzlabs@gmail.com, and links to the Terms and the Privacy Policy. VZ Labs is not a registered company, so no legal name or copyright line. No VZ Labs logo inside the apps; the desktop installer carries it (icon and wizard pictures) and names VZ Labs as publisher. Desktop 0.9 renames the program to  and moves the data folder from  to  on first start (never when  points elsewhere). The GitHub repo is still called VZ-Finance (renaming it is the owner's call).
+5. **Terms of Service and Privacy Policy.** Done 2026-10-30 as a plain-language draft (no lawyer, no governing-law clause, not limited to businesses): public pages  and  in English and Spanish, linked from the sign-in pages and Settings › About in both apps. Accepting is by using the app; no checkbox.
 
 ## Waiting on you
 1. Deployment, email and Google sign-in are done.

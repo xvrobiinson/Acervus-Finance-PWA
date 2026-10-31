@@ -8,6 +8,7 @@ import { useT } from "./lib/i18n";
 import { InviteScreen, SignIn, SignUp, Welcome } from "./screens/auth";
 import { ClientDetail, ClientForm, ClientsScreen } from "./screens/clients";
 import { HistoryScreen } from "./screens/history";
+import { LegalScreen } from "./screens/legal";
 import { LoanDetail, LoanForm, LoansScreen } from "./screens/loans";
 import { EntryForm, MoneyScreen, type EntryFormKind } from "./screens/money";
 import { MoreScreen } from "./screens/more";
@@ -25,6 +26,9 @@ export function App() {
   const t = useT();
   const location = useLocation();
 
+  // The Terms and the Privacy Policy are public: readable signed in or out.
+  if (location.pathname === "/terms") return <LegalScreen page="terms" />;
+  if (location.pathname === "/privacy") return <LegalScreen page="privacy" />;
   if (app.mode === "loading") return <Splash />;
   if (app.mode === "signed_out") {
     return (

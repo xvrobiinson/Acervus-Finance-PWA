@@ -1,8 +1,11 @@
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Shown in Settings › About.
+  define: { __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version) },
   plugins: [
     react(),
     VitePWA({
@@ -21,8 +24,8 @@ export default defineConfig({
         scope: "/",
         display: "standalone",
         orientation: "any",
-        background_color: "#F7F8FA",
-        theme_color: "#365CF5",
+        background_color: "#F6F7FB",
+        theme_color: "#5B47E8",
         categories: ["finance", "business", "productivity"],
         icons: [
           { src: "pwa-64x64.png", sizes: "64x64", type: "image/png" },

@@ -17,6 +17,7 @@ import { defaultRules, tagList, whenHint, withRules, withText, Wording, wordingP
 import { useBooks } from "../state/app";
 import { Banner, Button, Card, Check, Confirm, Field, Pill, Row, Segmented, Sheet, useToast } from "../ui/kit";
 import { NewBusinessForm, PendingInvites } from "./auth";
+import { LegalLinks, SUPPORT_EMAIL } from "./legal";
 import { RateInput, useParseError, useRate } from "../ui/inputs";
 
 export function SettingsScreen() {
@@ -41,7 +42,31 @@ export function SettingsScreen() {
       )}
       {admin && mode !== "online" && <Banner tone="offline" icon="cloudOff">{t("Business settings need a connection.", "Los ajustes del negocio necesitan conexión.")}</Banner>}
       <DataCard />
+      <AboutCard />
     </div>
+  );
+}
+
+/** Who makes the app, the version, how to reach us and the legal pages. */
+function AboutCard() {
+  const t = useT();
+  return (
+    <Card title={t("About", "Acerca de")} className="section">
+      <div className="card-body stack tight">
+        <div className="row wrap">
+          <span className="strong">{t("Acervus Finance, by VZ Labs", "Acervus Finance, por VZ Labs")}</span>
+          <span className="muted small">
+            {t("Version", "Versión")} {__APP_VERSION__}
+          </span>
+        </div>
+        <div className="small muted">
+          {t("Questions or help:", "Preguntas o ayuda:")} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        </div>
+        <div className="small">
+          <LegalLinks />
+        </div>
+      </div>
+    </Card>
   );
 }
 

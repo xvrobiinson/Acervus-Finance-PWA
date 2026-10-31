@@ -1,6 +1,6 @@
 {
   "name": "acervus-finance-pwa",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "Acervus Finance PWA: lending portfolio manager (Vite + React + Convex + Better Auth)",
   "scripts": {
     "dev": "vite",

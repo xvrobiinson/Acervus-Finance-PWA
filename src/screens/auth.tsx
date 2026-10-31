@@ -13,6 +13,7 @@ import { CURRENCIES, roleLabel } from "../lib/labels";
 import { useApp } from "../state/app";
 import { Icon, type IconName } from "../ui/icons";
 import { Banner, Button, Field } from "../ui/kit";
+import { LegalLinks } from "./legal";
 
 const INVITE_KEY = "acervus.inviteToken";
 const CODE_LENGTH = 6;
@@ -50,6 +51,9 @@ function AuthPanel({ title, sub, icon = "login", children }: { title: string; su
         </div>
         {children}
       </div>
+      <p className="auth-legal small">
+        <LegalLinks />
+      </p>
     </div>
   );
 }
